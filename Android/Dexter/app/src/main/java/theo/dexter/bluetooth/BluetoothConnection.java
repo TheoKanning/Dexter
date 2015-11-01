@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,8 @@ public class BluetoothConnection {
         void onDisconnect();
     }
 
+    private static final String TAG = BluetoothConnection.class.getSimpleName();
+
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private static final int MESSAGE_RECEIVED = 1;
@@ -40,11 +43,14 @@ public class BluetoothConnection {
 
     private ConnectedThread connectedThread;
 
+    private boolean isConnected = false;
+
     public BluetoothConnection(BluetoothDevice device, BluetoothConnectionListener listener) {
         this.bluetoothDevice = device;
         this.bluetoothConnectionListener = listener;
         this.bluetoothHandler = new BluetoothHandler(listener);
         this.connectThread = new ConnectThread(device);
+        bluetoothHandler.post(connectThread);
     }
 
     public void write(String message){
@@ -55,6 +61,10 @@ public class BluetoothConnection {
 
     public void disconnect(){
         connectThread.cancel();
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 
     private static class BluetoothHandler extends Handler{
@@ -89,6 +99,8 @@ public class BluetoothConnection {
             BluetoothSocket tmp = null;
             bluetoothDevice = device;
 
+            Log.d(TAG, "Initializing ConnectThread, address = " + bluetoothDevice.getAddress());
+
             // Get a BluetoothSocket to connect with the given BluetoothDevice
             try {
                 // MY_UUID is the app's UUID string, also used by the server code
@@ -108,9 +120,11 @@ public class BluetoothConnection {
                 // Unable to connect; close the bluetoothSocket and get out
                 try {
                     bluetoothSocket.close();
-                } catch (IOException closeException) { }
+                } catch (IOException closeException) {  }
                 return;
             }
+
+            isConnected = true;
 
             // Do work to manage the connection (in a separate thread)
             connectedThread = new ConnectedThread(bluetoothSocket);
@@ -120,6 +134,7 @@ public class BluetoothConnection {
         public void cancel() {
             try {
                 bluetoothSocket.close();
+                isConnected = false;
                 bluetoothConnectionListener.onDisconnect();
             } catch (IOException e) { }
         }

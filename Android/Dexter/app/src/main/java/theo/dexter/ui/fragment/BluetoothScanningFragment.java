@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -20,21 +19,17 @@ import butterknife.ButterKnife;
 import theo.dexter.DexterApplication;
 import theo.dexter.R;
 import theo.dexter.bluetooth.BluetoothScanner;
-import theo.dexter.bluetooth.BluetoothService;
 import theo.dexter.ui.activity.PlayActivity;
 
 /**
  * Fragment to choose from paired bluetooth devices
  */
-public class BluetoothScanningFragment extends BaseFragment implements BluetoothService.OnBluetoothDeviceDiscoveredListener, AdapterView.OnItemClickListener {
+public class BluetoothScanningFragment extends BaseFragment implements BluetoothScanner.OnBluetoothDeviceDiscoveredListener, AdapterView.OnItemClickListener {
 
     private static final int REQUEST_ENABLE_BT = 1;
 
     @Bind(R.id.device_list)
     ListView deviceList;
-
-    private BluetoothService btService;
-    private boolean btBound;
 
     private ArrayAdapter<String> adapter;
     private ArrayList<BluetoothDevice> devices;
@@ -91,15 +86,13 @@ public class BluetoothScanningFragment extends BaseFragment implements Bluetooth
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        bluetoothScanner.stopScan();
+
         BluetoothDevice selected = devices.get(position);
 
-        Toast.makeText(getContext(), selected.getAddress(), Toast.LENGTH_SHORT).show();
-
-        if (btService.connect(selected.getAddress())) {
-            Intent i = new Intent(getActivity(), PlayActivity.class);
-            i.putExtra(PlayActivity.EXTRA_ADDRESS, selected.getAddress());
-            startActivity(i);
-        }
+        Intent i = new Intent(getActivity(), PlayActivity.class);
+        i.putExtra(ControlFragment.ADDRESS_EXTRA, selected.getAddress());
+        startActivity(i);
     }
 
     @Override

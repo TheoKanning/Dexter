@@ -15,6 +15,11 @@ import android.widget.Toast;
  * @author Theo Kanning
  */
 public class BluetoothScanner {
+
+    public interface OnBluetoothDeviceDiscoveredListener{
+        void OnBluetoothDeviceDiscovered(BluetoothDevice device);
+    }
+
     private static final String TAG = BluetoothScanner.class.getSimpleName();
     private static final int SCAN_DURATION = 10000; //10s
 
@@ -24,7 +29,7 @@ public class BluetoothScanner {
 
     private Handler handler;
 
-    private BluetoothService.OnBluetoothDeviceDiscoveredListener listener;
+    private OnBluetoothDeviceDiscoveredListener listener;
 
     public BluetoothScanner(Context context) {
         this.context = context;
@@ -45,7 +50,7 @@ public class BluetoothScanner {
         }
     };
 
-    public void startScan(BluetoothService.OnBluetoothDeviceDiscoveredListener listener){
+    public void startScan(OnBluetoothDeviceDiscoveredListener listener){
         this.listener = listener;
         btAdapter.startDiscovery();
         Toast.makeText(context, "Scan started", Toast.LENGTH_SHORT).show();
