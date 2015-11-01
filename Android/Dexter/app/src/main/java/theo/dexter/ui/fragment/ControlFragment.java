@@ -1,35 +1,37 @@
 package theo.dexter.ui.fragment;
 
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
+
+import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import theo.dexter.DexterApplication;
 import theo.dexter.R;
-import theo.dexter.bluetooth.BluetoothService;
+import theo.dexter.bluetooth.BluetoothConnection;
+import theo.dexter.bluetooth.BluetoothScanner;
 
 /**
  * Fragment for steering car
  */
-public class ControlFragment extends BaseFragment implements SensorEventListener{
+public class ControlFragment extends BaseFragment implements SensorEventListener, BluetoothConnection.BluetoothConnectionListener{
 
     private static final String TAG = "ControlFragment";
+    public static final String ADDRESS_EXTRA = "ControlFragment.AddressExtra";
 
     @Bind(R.id.control_drive)
     Button drive;
@@ -51,11 +53,15 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
         parked = true;
     }
 
+
+    @Inject
+    BluetoothScanner bluetoothScanner;
+
+    private String address;
+    private BluetoothConnection bluetoothConnection;
+
     private SensorManager sensorManager;
     private Sensor accel;
-
-    private BluetoothService btService;
-    private boolean btBound;
 
     private int xAxis = 0;
     private int yAxis = 0;
@@ -80,6 +86,16 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
 
         sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        Bundle arguments = getArguments();
+        address = arguments.getString(ADDRESS_EXTRA);
+
+        if(address == null){
+            Log.e(TAG, "No address received");
+        } else {
+            bluetoothConnection = new BluetoothConnection(bluetoothScanner.getDevices(address), this);
+        }
+
         return view;
     }
 
@@ -87,18 +103,14 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     public void onResume() {
         super.onResume();
         park();
-        BluetoothService.bindToService(getActivity(), btConnection);
         sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if(btBound){
-            btService.disconnect();
-            getActivity().unbindService(btConnection);
-        }
         sensorManager.unregisterListener(this);
+        bluetoothConnection.disconnect();
     }
 
     @Override
@@ -109,8 +121,8 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent e) {
 
-        if(btService == null){
-            Log.d(TAG, "Null btService, btBound = " + btBound);
+        if(!bluetoothConnection.isConnected()){
+            Log.d(TAG, "BluetoothConnection.isConnected returned false");
             return;
         }
 
@@ -180,7 +192,7 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
         cmdSendL = String.valueOf(commandLeft + directionL + motorLeft + "\r");
         cmdSendR = String.valueOf(commandRight + directionR + motorRight + "\r");
 
-        btService.sendData(cmdSendL + cmdSendR);
+        bluetoothConnection.write(cmdSendL + cmdSendR);
         Log.d(TAG, cmdSendL + cmdSendR);
     }
 
@@ -189,21 +201,20 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
 
     }
 
-    /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection btConnection = new ServiceConnection() {
 
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            BluetoothService.BluetoothServiceBinder binder = (BluetoothService.BluetoothServiceBinder) service;
-            btService = binder.getService();
-            btBound = true;
-        }
 
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            btBound = false;
-        }
-    };
+    @Override
+    public void onMessageReceived(String message) {
+
+    }
+
+    @Override
+    public void onConnect() {
+        Toast.makeText(getContext(), "Connected!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDisconnect() {
+
+    }
 }

@@ -33,8 +33,6 @@
                 android:value="theo.dexter.ui.activity.MainActivity" />
         </activity>
 
-        <service android:name="theo.dexter.bluetooth.BluetoothService"></service>
-
     </application>
 
 </manifest>

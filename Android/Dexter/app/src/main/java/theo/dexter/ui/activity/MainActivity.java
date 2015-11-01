@@ -3,7 +3,7 @@ package theo.dexter.ui.activity;
 import android.os.Bundle;
 
 import theo.dexter.R;
-import theo.dexter.ui.fragment.BluetoothFragment;
+import theo.dexter.ui.fragment.BluetoothScanningFragment;
 
 public class MainActivity extends BaseActivity {
 
@@ -12,6 +12,6 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setFragment(new BluetoothFragment(), true);
+        setFragment(new BluetoothScanningFragment(), true);
     }
 }
