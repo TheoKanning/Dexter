@@ -5,7 +5,7 @@ import android.app.Application;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import theo.dexter.ui.fragment.BluetoothFragment;
+import theo.dexter.ui.fragment.BluetoothScanningFragment;
 import theo.dexter.ui.fragment.ControlFragment;
 
 @Singleton
@@ -17,7 +17,7 @@ public interface DexterComponent {
     void inject(Application application);
 
     //fragments
-    void inject(BluetoothFragment bluetoothFragment);
+    void inject(BluetoothScanningFragment bluetoothScanningFragment);
 
     void inject(ControlFragment controlFragment);
 }
