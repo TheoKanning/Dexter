@@ -79,6 +79,7 @@ public class BluetoothConnection {
                 case MESSAGE_RECEIVED:
                     BluetoothConnectionListener listener = listenerWeakReference.get();
                     if(listener != null) {
+                        //Reading message not yet implemented
                         listener.onMessageReceived("Message Received");
                     }
                     break;
