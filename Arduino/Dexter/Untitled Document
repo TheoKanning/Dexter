@@ -1,0 +1,7 @@
+https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#installing-the-9dof-razor-arduino-core
+
+load mpu dmp library https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#getting-started-with-the-example-firmware
+
+Disable everything except euler angles
+Add "R" in front of roll, etc
+Change log port to LOG_PORT_SERIAL_PORT_HARDWARE

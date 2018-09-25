@@ -1,7 +1,6 @@
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
 
 #define FRONT_LEFT_MOTOR_NUMBER   1
 #define BACK_LEFT_MOTOR_NUMBER    2
@@ -14,6 +13,8 @@
 #define BLUETOOTH_TIMEOUT 1000
 
 SoftwareSerial btSerial(3, 2); //RX | TX pins
+SoftwareSerial imuSerial(5, 4);
+
 
 Adafruit_MotorShield motorManager;
 Adafruit_DCMotor *motorFrontLeft;
@@ -27,23 +28,28 @@ long lastUpdateTimeMs = millis();
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(57600);
   Serial.println("Starting setup");
-  btSerial.begin(38400); //Baud rate may vary depending on your chip's settings!
+  //btSerial.begin(38400); //Baud rate may vary depending on your chip's settings!
+  imuSerial.begin(9600);
+  imuSerial.listen();
+  imuSerial.flush();
   initMotors();
 }
 /*
 * Loads serial data if available, releases motors after 1 second with data
 */
 void loop() {
-  if(readBtSerialData()){
-    lastUpdateTimeMs = millis();
-    setMotorSpeeds(rightSideMotorSpeedCommand, leftSideMotorSpeedCommand);
-  } else if(millis() - lastUpdateTimeMs > BLUETOOTH_TIMEOUT) {
-    Serial.println("Bluetooth timed out, releasing motors");
-    lastUpdateTimeMs = millis();
-    releaseMotors();
-  }
+  echoImuSerial();
+  delay(100);
+//  if(readBtSerialData()){
+//    lastUpdateTimeMs = millis();
+//    setMotorSpeeds(rightSideMotorSpeedCommand, leftSideMotorSpeedCommand);
+//  } else if(millis() - lastUpdateTimeMs > BLUETOOTH_TIMEOUT) {
+//    Serial.println("Bluetooth timed out, releasing motors");
+//    lastUpdateTimeMs = millis();
+//    releaseMotors();
+//  }
 }
 
 void initMotors(){
@@ -89,6 +95,18 @@ void releaseMotors(){
   motorFrontRight->run(RELEASE);
 }
 
+void echoImuSerial() {
+  if (imuSerial.available() == 0) {
+    return;
+  }
+
+  while (imuSerial.available() > 0) {
+    char inByte = imuSerial.read();
+    Serial.write(inByte);
+  }
+  Serial.println();
+}
+
 /* 
 * Reads available bluetooth serial data and returns true if a complete set has been read
 * Updates rightSideMotorSpeedCommand and leftSideMotorSpeedCommand global variables
@@ -122,7 +140,7 @@ boolean readBtSerialData(){
   } 
   if(done == doneBit) {
     btSerial.flush();
-    Serial.print("Right:"); Serial.print(rightSideMotorSpeedCommand); 
+    Serial.print("Right:"); Serial.println(rightSideMotorSpeedCommand); 
     Serial.print(" Left:"); Serial.println(leftSideMotorSpeedCommand);
     return true;
   } else {
