@@ -36,7 +36,7 @@
 /////////////////////////
 // Note: Some of these params can be overwritten using serial
 //  commands. These are just defaults on initial programming
-#define DMP_SAMPLE_RATE    5 // Logging/DMP sample rate(4-200 Hz)
+#define DMP_SAMPLE_RATE    20 // Logging/DMP sample rate(4-200 Hz)
 #define IMU_COMPASS_SAMPLE_RATE 100 // Compass sample rate (4-100 Hz)
 #define IMU_AG_SAMPLE_RATE 100 // Accel/gyro sample rate Must be between 4Hz and 1kHz
 #define IMU_GYRO_FSR       2000 // Gyro full-scale range (250, 500, 1000, or 2000)

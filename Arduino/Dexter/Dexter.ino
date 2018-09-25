@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
-#include <Wire.h>
 #include <Adafruit_MotorShield.h>
+#include <SerialCommand.h>
 
 #define FRONT_LEFT_MOTOR_NUMBER   1
 #define BACK_LEFT_MOTOR_NUMBER    2
@@ -15,6 +15,7 @@
 SoftwareSerial btSerial(3, 2); //RX | TX pins
 SoftwareSerial imuSerial(5, 4);
 
+SerialCommand serialCommand(imuSerial);
 
 Adafruit_MotorShield motorManager;
 Adafruit_DCMotor *motorFrontLeft;
@@ -33,15 +34,18 @@ void setup() {
   //btSerial.begin(38400); //Baud rate may vary depending on your chip's settings!
   imuSerial.begin(9600);
   imuSerial.listen();
-  imuSerial.flush();
+  serialCommand.addCommand("R", rollReceived);
+  serialCommand.addCommand("P", pitchReceived);
+  serialCommand.addCommand("Y", yawReceived);
+  serialCommand.addDefaultHandler(unrecognized);
   initMotors();
+  
 }
 /*
 * Loads serial data if available, releases motors after 1 second with data
 */
 void loop() {
-  echoImuSerial();
-  delay(100);
+  serialCommand.readSerial();
 //  if(readBtSerialData()){
 //    lastUpdateTimeMs = millis();
 //    setMotorSpeeds(rightSideMotorSpeedCommand, leftSideMotorSpeedCommand);
@@ -50,6 +54,34 @@ void loop() {
 //    lastUpdateTimeMs = millis();
 //    releaseMotors();
 //  }
+}
+
+void rollReceived() {
+  char *roll = serialCommand.next();
+  Serial.print("Roll: ");
+  Serial.println(roll);
+}
+
+void pitchReceived() {
+  char *pitch = serialCommand.next();
+  Serial.print("Pitch: ");
+  Serial.println(pitch);
+}
+
+void yawReceived() {
+  char *yaw = serialCommand.next();
+  Serial.print("Yaw: ");
+  Serial.println(yaw);
+}
+
+void unrecognized() {
+  char *next = serialCommand.next();
+  Serial.print("Unrecognized command: ");
+  if (next != NULL) {
+    Serial.println(next);
+  } else {
+    Serial.println("No second argument");
+  }
 }
 
 void initMotors(){

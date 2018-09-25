@@ -237,9 +237,9 @@ void logIMUData(void)
   if (enableEuler) // If Euler-angle logging is enabled
   {
     imu.computeEulerAngles();
-    imuLog += "P" + String(imu.pitch, 2) + " ";
-    imuLog += "R" + String(imu.roll, 2) + " ";
-    imuLog += "Y" + String(imu.yaw, 2) + " ";
+    imuLog += "P " + String(imu.pitch, 2) + "\r\n";
+    imuLog += "R " + String(imu.roll, 2) + "\r\n";
+    imuLog += "Y " + String(imu.yaw, 2) + "\r\n";
   }
   if (enableHeading) // If heading logging is enabled
   {
