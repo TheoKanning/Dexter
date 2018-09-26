@@ -3,6 +3,11 @@
 #include <SerialCommand.h>
 #include "Controller.h"
 
+#define LEFT_MOTOR_NUMBER  1
+#define RIGHT_MOTOR_NUMBER 2
+#define STEPS_PER_REVOLUTION 200
+#define REVOLUTIONS_PER_SECOND 1
+
 #define FRONT_LEFT_MOTOR_NUMBER   1
 #define BACK_LEFT_MOTOR_NUMBER    2
 #define BACK_RIGHT_MOTOR_NUMBER   3
@@ -21,14 +26,14 @@ SerialCommand serialCommand(imuSerial);
 Controller controller;
 
 Adafruit_MotorShield motorManager;
-Adafruit_DCMotor *motorFrontLeft;
-Adafruit_DCMotor *motorBackLeft;
-Adafruit_DCMotor *motorBackRight;
-Adafruit_DCMotor *motorFrontRight;
+Adafruit_StepperMotor *motorLeft;
+Adafruit_StepperMotor *motorRight;
 
 int rightSideMotorSpeedCommand;
 int leftSideMotorSpeedCommand;
 long lastUpdateTimeMs = millis();
+
+int fallThreshold = 60; // give up if robot is more than 60 degrees from vertical
 
 
 void setup() {
@@ -92,11 +97,10 @@ void unrecognized() {
 
 void initMotors(){
   motorManager = Adafruit_MotorShield();
-  motorFrontLeft   = motorManager.getMotor(FRONT_LEFT_MOTOR_NUMBER);
-  motorBackLeft    = motorManager.getMotor(BACK_LEFT_MOTOR_NUMBER);
-  motorBackRight   = motorManager.getMotor(BACK_RIGHT_MOTOR_NUMBER);
-  motorFrontRight  = motorManager.getMotor(FRONT_RIGHT_MOTOR_NUMBER);
-  
+  motorLeft = motorManager.getStepper(STEPS_PER_REVOLUTION, LEFT_MOTOR_NUMBER);
+  motorRight = motorManager.getStepper(STEPS_PER_REVOLUTION, RIGHT_MOTOR_NUMBER);
+  motorLeft->setSpeed(REVOLUTIONS_PER_SECOND);
+  motorRight->setSpeed(REVOLUTIONS_PER_SECOND);
   motorManager.begin();
   releaseMotors();
 }
@@ -104,86 +108,22 @@ void initMotors(){
 /*
 * Sets all motors speeds, assumes good data
 */
-void setMotorSpeeds(int rightMotorSpeed, int leftMotorSpeed){
-  setSingleMotorSpeed(motorFrontRight, rightMotorSpeed);
-  setSingleMotorSpeed(motorBackRight, rightMotorSpeed);
-  setSingleMotorSpeed(motorFrontLeft, leftMotorSpeed);
-  setSingleMotorSpeed(motorBackLeft, leftMotorSpeed);
+void setMotorSpeeds(float leftMotorSpeed, float rightMotorSpeed){
+  setMotorSpeed(motorLeft, leftMotorSpeed);
+  setMotorSpeed(motorRight, rightMotorSpeed);
 }
 
-/*
-* Sets speed of a single motor, assumes good data
-*/
-void setSingleMotorSpeed(Adafruit_DCMotor *motor, int motorSpeed){
-  if(abs(motorSpeed) < MIN_SPEED){
-    motor->run(RELEASE);
-  } else if (motorSpeed > 0) {
-    motor->setSpeed(motorSpeed);
-    motor->run(FORWARD);
+void setMotorSpeed(Adafruit_StepperMotor *motor, double radiansPerSec) {
+  // todo set speed here
+  int steps = 10;
+  if (radiansPerSec > 0) {
+    motor->step(10, FORWARD, SINGLE);
   } else {
-    motor->setSpeed(abs(motorSpeed));
-    motor->run(BACKWARD);
+    motor->step(10, BACKWARD, SINGLE);
   }
 }
 
 void releaseMotors(){
-  motorFrontLeft->run(RELEASE);
-  motorBackLeft->run(RELEASE);
-  motorBackRight->run(RELEASE);
-  motorFrontRight->run(RELEASE);
-}
-
-void echoImuSerial() {
-  if (imuSerial.available() == 0) {
-    return;
-  }
-
-  while (imuSerial.available() > 0) {
-    char inByte = imuSerial.read();
-    Serial.write(inByte);
-  }
-  Serial.println();
-}
-
-/* 
-* Reads available bluetooth serial data and returns true if a complete set has been read
-* Updates rightSideMotorSpeedCommand and leftSideMotorSpeedCommand global variables
-*/
-boolean readBtSerialData(){
-  const int leftBit = 1;
-  const int rightBit = 2;
-  const int doneBit = 3;
-  
-  /* Temporary variable for storing progress, 
-  * done == doneBit once right and left each been read at least once
-  * Uses OR instead of + to prevent errors if one side is read multiple times
-  * Ex. done = 0: done |= rightBit; done |= rightBit; done |= rightBit; done == 1
-  * done = 0; done += rightBit; done += rightBit; done += rightBit; done == 3; <-- Considered complete without reading ledt side
-  */
-  int done = 0; 
-  char buffer = '\0';
-  
-  while(btSerial.available() > 0 && done != doneBit){
-    buffer = btSerial.read();
-    switch(buffer){
-      case 'R':
-        rightSideMotorSpeedCommand = constrain(btSerial.parseFloat(), PWM_MIN, PWM_MAX);
-        done |= rightBit;
-        break;
-      case 'L':
-        leftSideMotorSpeedCommand = constrain(btSerial.parseFloat(), PWM_MIN, PWM_MAX);
-        done |= leftBit;
-        break;
-    }
-  } 
-  if(done == doneBit) {
-    btSerial.flush();
-    Serial.print("Right:"); Serial.println(rightSideMotorSpeedCommand); 
-    Serial.print(" Left:"); Serial.println(leftSideMotorSpeedCommand);
-    return true;
-  } else {
-    rightSideMotorSpeedCommand = 0;
-    leftSideMotorSpeedCommand = 0; 
-    return false;
-  }
+  motorLeft->release();
+  motorRight->release();
 }
