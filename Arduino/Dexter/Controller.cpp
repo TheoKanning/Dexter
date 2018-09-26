@@ -13,7 +13,7 @@ Controller::Controller(){
 MotorSpeed Controller::calculateMotorSpeeds(double linear, double angular) {
   double error = -pitch;
 
-  this->integralError += error;
+  this->integralError = constrain(this->integralError + error, -this->integralMaxWindup, this->integralMaxWindup);
 
   long deltaMs = millis() - this->lastErrorTime;
   double derivError = (error - this->lastError) / (deltaMs / 1000.0);

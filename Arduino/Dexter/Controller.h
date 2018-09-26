@@ -22,6 +22,7 @@ class Controller {
     double lastError = 0;
     double lastErrorTime = 0;
     double integralError = 0;
+    double integralMaxWindup = 1000;
     double Kp = 0;
     double Ki = 0;
     double Kd = 0;

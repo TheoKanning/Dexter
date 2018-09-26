@@ -13,10 +13,8 @@
 #define BACK_RIGHT_MOTOR_NUMBER   3
 #define FRONT_RIGHT_MOTOR_NUMBER  4
 
-#define PWM_MIN -255
-#define PWM_MAX  255
-#define MIN_SPEED 50
 #define BLUETOOTH_TIMEOUT 1000
+#define FREQUENCY 10 // number of motor updates per second
 
 SoftwareSerial btSerial(3, 2); //RX | TX pins
 SoftwareSerial imuSerial(5, 4);
@@ -34,7 +32,7 @@ int leftSideMotorSpeedCommand;
 long lastUpdateTimeMs = millis();
 
 int fallThreshold = 60; // give up if robot is more than 60 degrees from vertical
-
+boolean fallen = false;
 
 void setup() {
   Serial.begin(57600);
@@ -47,39 +45,39 @@ void setup() {
   serialCommand.addCommand("Y", yawReceived);
   serialCommand.addDefaultHandler(unrecognized);
   initMotors();
-  
 }
+
 /*
 * Loads serial data if available, releases motors after 1 second with data
 */
 void loop() {
   serialCommand.readSerial();
-//  if(readBtSerialData()){
-//    lastUpdateTimeMs = millis();
-//    setMotorSpeeds(rightSideMotorSpeedCommand, leftSideMotorSpeedCommand);
-//  } else if(millis() - lastUpdateTimeMs > BLUETOOTH_TIMEOUT) {
-//    Serial.println("Bluetooth timed out, releasing motors");
-//    lastUpdateTimeMs = millis();
-//    releaseMotors();
-//  }
+  checkForFall(controller.pitch);
+  if (fallen) {
+    releaseMotors();
+  } else if (millis() - lastUpdateTimeMs > 1000 / FREQUENCY) {
+    MotorSpeed speeds = controller.calculateMotorSpeeds(0, 0);
+    setMotorSpeeds(speeds.left, speeds.right);
+    lastUpdateTimeMs = millis();
+  }
 }
 
 void rollReceived() {
-  double roll = atof(serialCommand.next());
+  double roll = wrapAngle(atof(serialCommand.next()));
   Serial.print("Roll: ");
   Serial.println(roll);
   controller.roll = roll;
 }
 
 void pitchReceived() {
-  double pitch = atof(serialCommand.next());
+  double pitch = wrapAngle(atof(serialCommand.next()));
   Serial.print("Pitch: ");
   Serial.println(pitch);
   controller.pitch = pitch;
 }
 
 void yawReceived() {
-  double yaw = atof(serialCommand.next());
+  double yaw = wrapAngle(atof(serialCommand.next()));
   Serial.print("Yaw: ");
   Serial.println(yaw);
   controller.yaw = yaw;
@@ -126,4 +124,19 @@ void setMotorSpeed(Adafruit_StepperMotor *motor, double radiansPerSec) {
 void releaseMotors(){
   motorLeft->release();
   motorRight->release();
+}
+
+void checkForFall(double pitch) {
+  fallen = pitch > fallThreshold || pitch < - fallThreshold;
+}
+
+// adds and subtracts 360 degrees until angle is between -180 and 180
+double wrapAngle(double angle) {
+  while(angle > 180) {
+    angle -= 360;
+  }
+  while(angle < -180) {
+    angle += 360;
+  }
+  return angle;
 }
