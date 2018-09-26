@@ -1,6 +1,7 @@
 #include <SoftwareSerial.h>
 #include <Adafruit_MotorShield.h>
 #include <SerialCommand.h>
+#include "Controller.h"
 
 #define FRONT_LEFT_MOTOR_NUMBER   1
 #define BACK_LEFT_MOTOR_NUMBER    2
@@ -16,6 +17,8 @@ SoftwareSerial btSerial(3, 2); //RX | TX pins
 SoftwareSerial imuSerial(5, 4);
 
 SerialCommand serialCommand(imuSerial);
+
+Controller controller;
 
 Adafruit_MotorShield motorManager;
 Adafruit_DCMotor *motorFrontLeft;
@@ -57,21 +60,24 @@ void loop() {
 }
 
 void rollReceived() {
-  char *roll = serialCommand.next();
+  double roll = atof(serialCommand.next());
   Serial.print("Roll: ");
   Serial.println(roll);
+  controller.roll = roll;
 }
 
 void pitchReceived() {
-  char *pitch = serialCommand.next();
+  double pitch = atof(serialCommand.next());
   Serial.print("Pitch: ");
   Serial.println(pitch);
+  controller.pitch = pitch;
 }
 
 void yawReceived() {
-  char *yaw = serialCommand.next();
+  double yaw = atof(serialCommand.next());
   Serial.print("Yaw: ");
   Serial.println(yaw);
+  controller.yaw = yaw;
 }
 
 void unrecognized() {
