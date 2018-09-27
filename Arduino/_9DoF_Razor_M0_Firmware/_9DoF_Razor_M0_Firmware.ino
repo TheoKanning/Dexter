@@ -236,10 +236,36 @@ void logIMUData(void)
   }
   if (enableEuler) // If Euler-angle logging is enabled
   {
-    imu.computeEulerAngles();
-    imuLog += "P " + String(imu.pitch, 2) + "\r\n";
-    imuLog += "R " + String(imu.roll, 2) + "\r\n";
-    imuLog += "Y " + String(imu.yaw, 2) + "\r\n";
+
+    float dqw = imu.calcQuat(imu.qw);
+    float dqx = imu.calcQuat(imu.qx);
+    float dqy = imu.calcQuat(imu.qy);
+    float dqz = imu.calcQuat(imu.qz);
+    
+    float t0 = 2.0f * (dqw * dqx + dqy * dqz);
+    float t1 = 1.0f - 2.0f * (dqx * dqx + dqy * dqy);
+    float roll = atan2(t0, t1);
+    
+    float t2 = 2.0f * (dqw * dqy - dqz * dqx);
+    // Keep t2 within range of asin (-1, 1)
+    t2 = t2 > 1.0f ? 1.0f : t2;
+    t2 = t2 < -1.0f ? -1.0f : t2;
+    float pitch = asin(t2);
+    
+    float t3 = 2.0f * (dqw * dqz + dqx * dqy);
+    float t4 = 1.0f - 2.0f * (dqy * dqy + dqz * dqz);
+    float yaw = atan2(t3, t4);
+  
+    pitch *= (180.0 / PI);
+    roll *= (180.0 / PI);
+    yaw *= (180.0 / PI);
+    if (pitch < 0) pitch = 360.0 + pitch;
+    if (roll < 0) roll = 360.0 + roll;
+    if (yaw < 0) yaw = 360.0 + yaw; 
+  
+    imuLog += "P " + String(pitch, 2) + "\r\n";
+    imuLog += "R " + String(roll, 2) + "\r\n";
+    imuLog += "Y " + String(yaw, 2) + "\r\n";
   }
   if (enableHeading) // If heading logging is enabled
   {

@@ -21,11 +21,11 @@ SoftwareSerial imuSerial(5, 4);
 
 SerialCommand serialCommand(imuSerial);
 
-Controller controller;
-
 Adafruit_MotorShield motorManager;
 Adafruit_StepperMotor *motorLeft;
 Adafruit_StepperMotor *motorRight;
+
+Controller controller;
 
 int rightSideMotorSpeedCommand;
 int leftSideMotorSpeedCommand;
@@ -47,39 +47,37 @@ void setup() {
   initMotors();
 }
 
-/*
-* Loads serial data if available, releases motors after 1 second with data
-*/
 void loop() {
   serialCommand.readSerial();
+  if (millis() - lastUpdateTimeMs < 1000 / FREQUENCY) {
+    return;
+  }
+  lastUpdateTimeMs = millis();
+  
   checkForFall(controller.pitch);
   if (fallen) {
     releaseMotors();
-  } else if (millis() - lastUpdateTimeMs > 1000 / FREQUENCY) {
+  } else {
     MotorSpeed speeds = controller.calculateMotorSpeeds(0, 0);
     setMotorSpeeds(speeds.left, speeds.right);
-    lastUpdateTimeMs = millis();
   }
 }
 
 void rollReceived() {
   double roll = wrapAngle(atof(serialCommand.next()));
-  Serial.print("Roll: ");
-  Serial.println(roll);
+  //logAngle("Roll", roll);
   controller.roll = roll;
 }
 
 void pitchReceived() {
   double pitch = wrapAngle(atof(serialCommand.next()));
-  Serial.print("Pitch: ");
-  Serial.println(pitch);
+  logAngle("Pitch", pitch);
   controller.pitch = pitch;
 }
 
 void yawReceived() {
   double yaw = wrapAngle(atof(serialCommand.next()));
-  Serial.print("Yaw: ");
-  Serial.println(yaw);
+  //logAngle("Yaw", yaw);
   controller.yaw = yaw;
 }
 
@@ -93,7 +91,7 @@ void unrecognized() {
   }
 }
 
-void initMotors(){
+void initMotors() {
   motorManager = Adafruit_MotorShield();
   motorLeft = motorManager.getStepper(STEPS_PER_REVOLUTION, LEFT_MOTOR_NUMBER);
   motorRight = motorManager.getStepper(STEPS_PER_REVOLUTION, RIGHT_MOTOR_NUMBER);
@@ -106,7 +104,7 @@ void initMotors(){
 /*
 * Sets all motors speeds, assumes good data
 */
-void setMotorSpeeds(float leftMotorSpeed, float rightMotorSpeed){
+void setMotorSpeeds(float leftMotorSpeed, float rightMotorSpeed) {
   setMotorSpeed(motorLeft, leftMotorSpeed);
   setMotorSpeed(motorRight, rightMotorSpeed);
 }
@@ -115,9 +113,9 @@ void setMotorSpeed(Adafruit_StepperMotor *motor, double radiansPerSec) {
   // todo set speed here
   int steps = 10;
   if (radiansPerSec > 0) {
-    motor->step(10, FORWARD, SINGLE);
+    //motor->step(10, FORWARD, SINGLE);
   } else {
-    motor->step(10, BACKWARD, SINGLE);
+    //motor->step(10, BACKWARD, SINGLE);
   }
 }
 
@@ -139,4 +137,10 @@ double wrapAngle(double angle) {
     angle += 360;
   }
   return angle;
+}
+
+void logAngle(char* name, double angle){
+  Serial.print(name);
+  Serial.print(": ");
+  Serial.println(angle);
 }
