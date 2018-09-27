@@ -1,20 +1,16 @@
 #include <SoftwareSerial.h>
 #include <Adafruit_MotorShield.h>
 #include <SerialCommand.h>
+#include <AccelStepper.h>
 #include "Controller.h"
 
-#define LEFT_MOTOR_NUMBER  1
-#define RIGHT_MOTOR_NUMBER 2
+#define LEFT_MOTOR_NUMBER  2
+#define RIGHT_MOTOR_NUMBER 1
 #define STEPS_PER_REVOLUTION 200
-#define REVOLUTIONS_PER_SECOND 1
-
-#define FRONT_LEFT_MOTOR_NUMBER   1
-#define BACK_LEFT_MOTOR_NUMBER    2
-#define BACK_RIGHT_MOTOR_NUMBER   3
-#define FRONT_RIGHT_MOTOR_NUMBER  4
+#define REVOLUTIONS_PER_MINUTE 120
 
 #define BLUETOOTH_TIMEOUT 1000
-#define FREQUENCY 10 // number of motor updates per second
+#define FREQUENCY 20 // number of motor updates per second
 
 SoftwareSerial btSerial(3, 2); //RX | TX pins
 SoftwareSerial imuSerial(5, 4);
@@ -24,6 +20,8 @@ SerialCommand serialCommand(imuSerial);
 Adafruit_MotorShield motorManager;
 Adafruit_StepperMotor *motorLeft;
 Adafruit_StepperMotor *motorRight;
+AccelStepper stepperLeft(leftForward, leftBackward);
+AccelStepper stepperRight(rightForward, rightBackward);
 
 Controller controller;
 
@@ -31,8 +29,9 @@ int rightSideMotorSpeedCommand;
 int leftSideMotorSpeedCommand;
 long lastUpdateTimeMs = millis();
 
-int fallThreshold = 60; // give up if robot is more than 60 degrees from vertical
+int fallThreshold = 30; // give up if robot is more than this many degrees from vertical
 boolean fallen = false;
+int count = 0;
 
 void setup() {
   Serial.begin(57600);
@@ -48,19 +47,23 @@ void setup() {
 }
 
 void loop() {
-  serialCommand.readSerial();
+  checkForFall(controller.pitch);
+  
+  if (fallen) {
+    releaseMotors();
+  } else {
+    stepperLeft.run();
+    stepperRight.run();
+  }
+
   if (millis() - lastUpdateTimeMs < 1000 / FREQUENCY) {
     return;
   }
   lastUpdateTimeMs = millis();
   
-  checkForFall(controller.pitch);
-  if (fallen) {
-    releaseMotors();
-  } else {
-    MotorSpeed speeds = controller.calculateMotorSpeeds(0, 0);
-    setMotorSpeeds(speeds.left, speeds.right);
-  }
+  serialCommand.readSerial();
+  MotorSpeed speeds = controller.calculateMotorSpeeds(0);
+  setMotorSpeeds(speeds.left, speeds.right);
 }
 
 void rollReceived() {
@@ -71,7 +74,7 @@ void rollReceived() {
 
 void pitchReceived() {
   double pitch = wrapAngle(atof(serialCommand.next()));
-  logAngle("Pitch", pitch);
+  //logAngle("Pitch", pitch);
   controller.pitch = pitch;
 }
 
@@ -95,9 +98,13 @@ void initMotors() {
   motorManager = Adafruit_MotorShield();
   motorLeft = motorManager.getStepper(STEPS_PER_REVOLUTION, LEFT_MOTOR_NUMBER);
   motorRight = motorManager.getStepper(STEPS_PER_REVOLUTION, RIGHT_MOTOR_NUMBER);
-  motorLeft->setSpeed(REVOLUTIONS_PER_SECOND);
-  motorRight->setSpeed(REVOLUTIONS_PER_SECOND);
+  motorLeft->setSpeed(REVOLUTIONS_PER_MINUTE);
+  motorRight->setSpeed(REVOLUTIONS_PER_MINUTE);
   motorManager.begin();
+  stepperLeft.setMaxSpeed(STEPS_PER_REVOLUTION  * 2);
+  stepperRight.setMaxSpeed(STEPS_PER_REVOLUTION * 2);
+  stepperLeft.setAcceleration(500); // high enough not to worry about it
+  stepperRight.setAcceleration(500);
   releaseMotors();
 }
 
@@ -105,18 +112,10 @@ void initMotors() {
 * Sets all motors speeds, assumes good data
 */
 void setMotorSpeeds(float leftMotorSpeed, float rightMotorSpeed) {
-  setMotorSpeed(motorLeft, leftMotorSpeed);
-  setMotorSpeed(motorRight, rightMotorSpeed);
-}
-
-void setMotorSpeed(Adafruit_StepperMotor *motor, double radiansPerSec) {
-  // todo set speed here
-  int steps = 10;
-  if (radiansPerSec > 0) {
-    //motor->step(10, FORWARD, SINGLE);
-  } else {
-    //motor->step(10, BACKWARD, SINGLE);
-  }
+  stepperLeft.setSpeed((leftMotorSpeed * STEPS_PER_REVOLUTION));
+  stepperRight.setSpeed((rightMotorSpeed * STEPS_PER_REVOLUTION));
+  stepperLeft.move(leftMotorSpeed * 1000); // move in the right direction
+  stepperRight.move(rightMotorSpeed * 1000);
 }
 
 void releaseMotors(){
@@ -143,4 +142,22 @@ void logAngle(char* name, double angle){
   Serial.print(name);
   Serial.print(": ");
   Serial.println(angle);
+}
+
+void leftForward() {
+  motorLeft->step(1, FORWARD, DOUBLE);
+}
+
+void leftBackward() {
+  motorLeft->step(1, BACKWARD, DOUBLE);
+}
+
+void rightForward() {
+  // opposite direction because of motor mounting
+  motorRight->step(1, BACKWARD, DOUBLE);
+}
+
+void rightBackward() {
+  // opposite direction because of motor mounting
+  motorRight->step(1, FORWARD, DOUBLE);
 }

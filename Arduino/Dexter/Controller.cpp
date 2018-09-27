@@ -10,8 +10,8 @@ Controller::Controller(){
   this->lastErrorTime = millis();
 };
 
-MotorSpeed Controller::calculateMotorSpeeds(double linear, double angular) {
-  double error = -pitch;
+MotorSpeed Controller::calculateMotorSpeeds(double angle) {
+  double error = angle - pitch;
 
   this->integralError = constrain(this->integralError + error, -this->integralMaxWindup, this->integralMaxWindup);
 
@@ -20,6 +20,11 @@ MotorSpeed Controller::calculateMotorSpeeds(double linear, double angular) {
   this->lastError = error;
   this->lastErrorTime = millis();
   
-  double action = this->Kp * error + this->Ki * this->integralError + this->Kd * derivError;  
+  double action = this->Kp * error + this->Ki * this->integralError + this->Kd * derivError;
+  
+  Serial.print("Error: ");
+  Serial.print(error);
+  Serial.print(" Action: ");
+  Serial.println(action);
   return MotorSpeed(action, action);
 }

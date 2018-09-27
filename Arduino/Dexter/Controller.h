@@ -16,14 +16,14 @@ class Controller {
     double roll = 0;
     double pitch = 0;
     double yaw = 0;
-    MotorSpeed calculateMotorSpeeds(double, double);
+    MotorSpeed calculateMotorSpeeds(double);
 
   private:
     double lastError = 0;
     double lastErrorTime = 0;
     double integralError = 0;
     double integralMaxWindup = 1000;
-    double Kp = 0;
+    double Kp = 0.5;
     double Ki = 0;
     double Kd = 0;
 };

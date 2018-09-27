@@ -6,8 +6,12 @@ Disable everything except euler angles
 Add "R" in front of roll, etc 
 R 10.00\r\n
 Change log port to LOG_PORT_SERIAL_PORT_HARDWARE
+https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 
 https://github.com/scogswell/ArduinoSerialCommand
+https://github.com/adafruit/AccelStepper
 
 Stepper Motor https://www.sparkfun.com/products/9238
+green + gray
+yellow + red
 Wheels and couplers
