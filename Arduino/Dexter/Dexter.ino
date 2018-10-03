@@ -18,26 +18,24 @@ SoftwareSerial imuSerial(5, 4);
 SerialCommand serialCommand(imuSerial);
 
 Adafruit_MotorShield motorManager;
-Adafruit_StepperMotor *motorLeft;
-Adafruit_StepperMotor *motorRight;
+Adafruit_StepperMotor *motorLeft = motorManager.getStepper(STEPS_PER_REVOLUTION, LEFT_MOTOR_NUMBER);
+Adafruit_StepperMotor *motorRight = motorManager.getStepper(STEPS_PER_REVOLUTION, RIGHT_MOTOR_NUMBER);
 AccelStepper stepperLeft(leftForward, leftBackward);
 AccelStepper stepperRight(rightForward, rightBackward);
 
 Controller controller;
 
-int rightSideMotorSpeedCommand;
-int leftSideMotorSpeedCommand;
 long lastUpdateTimeMs = millis();
-
-int fallThreshold = 30; // give up if robot is more than this many degrees from vertical
+int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
 boolean fallen = false;
+float pitchCorrection = -0.87; // The pitch value when vertical, corrects construction errors
 int count = 0;
 
 void setup() {
   Serial.begin(57600);
-  Serial.println("Starting setup");
+  Serial.println("Dexter is starting...");
   //btSerial.begin(38400); //Baud rate may vary depending on your chip's settings!
-  imuSerial.begin(9600);
+  imuSerial.begin(38400);
   imuSerial.listen();
   serialCommand.addCommand("R", rollReceived);
   serialCommand.addCommand("P", pitchReceived);
@@ -50,17 +48,18 @@ void loop() {
   checkForFall(controller.pitch);
   
   if (fallen) {
-    releaseMotors();
+    //releaseMotors();
   } else {
-    stepperLeft.run();
-    stepperRight.run();
+    stepperLeft.runSpeed();
+    stepperRight.runSpeed();
   }
-
+  count++;
   if (millis() - lastUpdateTimeMs < 1000 / FREQUENCY) {
     return;
   }
   lastUpdateTimeMs = millis();
-  
+  Serial.println(count);
+  count = 0;
   serialCommand.readSerial();
   MotorSpeed speeds = controller.calculateMotorSpeeds(0);
   setMotorSpeeds(speeds.left, speeds.right);
@@ -73,9 +72,9 @@ void rollReceived() {
 }
 
 void pitchReceived() {
-  double pitch = wrapAngle(atof(serialCommand.next()));
+  double pitch = wrapAngle(atof(serialCommand.next())) - pitchCorrection;
   //logAngle("Pitch", pitch);
-  controller.pitch = pitch;
+  controller.pitch = 0.5 * controller.pitch + 0.5 * pitch;
 }
 
 void yawReceived() {
@@ -95,27 +94,28 @@ void unrecognized() {
 }
 
 void initMotors() {
-  motorManager = Adafruit_MotorShield();
-  motorLeft = motorManager.getStepper(STEPS_PER_REVOLUTION, LEFT_MOTOR_NUMBER);
-  motorRight = motorManager.getStepper(STEPS_PER_REVOLUTION, RIGHT_MOTOR_NUMBER);
-  motorLeft->setSpeed(REVOLUTIONS_PER_MINUTE);
-  motorRight->setSpeed(REVOLUTIONS_PER_MINUTE);
   motorManager.begin();
-  stepperLeft.setMaxSpeed(STEPS_PER_REVOLUTION  * 2);
-  stepperRight.setMaxSpeed(STEPS_PER_REVOLUTION * 2);
-  stepperLeft.setAcceleration(500); // high enough not to worry about it
-  stepperRight.setAcceleration(500);
-  releaseMotors();
+  stepperLeft.setMaxSpeed(2 * STEPS_PER_REVOLUTION);
+  stepperRight.setMaxSpeed(2 * STEPS_PER_REVOLUTION);
+  stepperLeft.setAcceleration(0); // ignored if set to zero
+  stepperRight.setAcceleration(0);
 }
 
 /*
 * Sets all motors speeds, assumes good data
 */
 void setMotorSpeeds(float leftMotorSpeed, float rightMotorSpeed) {
-  stepperLeft.setSpeed((leftMotorSpeed * STEPS_PER_REVOLUTION));
+  // setting speed to 0 causes AccelStepper to ignore value and travel at max speed instead.
+  if (leftMotorSpeed == 0) leftMotorSpeed = 0.001;
+  if (rightMotorSpeed == 0) rightMotorSpeed = 0.001;
+  stepperLeft.setSpeed(leftMotorSpeed * STEPS_PER_REVOLUTION);
   stepperRight.setSpeed((rightMotorSpeed * STEPS_PER_REVOLUTION));
-  stepperLeft.move(leftMotorSpeed * 1000); // move in the right direction
-  stepperRight.move(rightMotorSpeed * 1000);
+  
+  //Serial.print("Actual: ");
+  //Serial.print(stepperLeft.speed());
+  //Serial.print(" Expected: ");
+  //Serial.print(leftMotorSpeed * STEPS_PER_REVOLUTION);
+  //Serial.println(" steps/sec");
 }
 
 void releaseMotors(){
@@ -145,19 +145,19 @@ void logAngle(char* name, double angle){
 }
 
 void leftForward() {
-  motorLeft->step(1, FORWARD, DOUBLE);
+  motorLeft->onestep(FORWARD, DOUBLE);
 }
 
 void leftBackward() {
-  motorLeft->step(1, BACKWARD, DOUBLE);
+  motorLeft->onestep(BACKWARD, DOUBLE);
 }
 
 void rightForward() {
   // opposite direction because of motor mounting
-  motorRight->step(1, BACKWARD, DOUBLE);
+  //motorRight->onestep(BACKWARD, DOUBLE);
 }
 
 void rightBackward() {
   // opposite direction because of motor mounting
-  motorRight->step(1, FORWARD, DOUBLE);
+  //motorRight->onestep(FORWARD, DOUBLE);
 }

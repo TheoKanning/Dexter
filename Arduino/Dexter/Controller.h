@@ -1,5 +1,5 @@
-#ifndef FUCK
-#define FUCK
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
 #include "Arduino.h"
 
@@ -23,9 +23,9 @@ class Controller {
     double lastErrorTime = 0;
     double integralError = 0;
     double integralMaxWindup = 1000;
-    double Kp = 0.5;
+    double Kp = 0.1;
     double Ki = 0;
-    double Kd = 0;
+    double Kd = 0.001;
 };
 
 #endif
