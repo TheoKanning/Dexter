@@ -8,6 +8,10 @@ const int leftDirPin   = 14; // B5
 const int rightStepPin = 13; // B4
 const int rightDirPin  = 12; // D7
 
+int getMaxSpeed() {
+  return maxSpeed;
+}
+
 void leftStep() {
   digitalWrite(leftStepPin, HIGH);
   digitalWrite(leftStepPin, LOW);

@@ -1,42 +1,41 @@
 #include <SoftwareSerial.h>
 #include <SerialCommand.h>
-#include "Controller.h"
 #include <PID_v1.h>
 
 #define BLUETOOTH_TIMEOUT 1000
 #define FREQUENCY 20 // number of motor updates per second
+
+const double Kp = 0;
+const double Ki = 0;
+const double Kd = 0;
+const int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
+const float pitchCorrection = -0.87; // The pitch value when vertical, corrects construction errors
 
 SoftwareSerial btSerial(3, 2); //RX | TX pins
 SoftwareSerial imuSerial(5, 4);
 
 SerialCommand serialCommand(imuSerial);
 
-Controller controller;
+double setPoint = 0;
+double pitch = 10;
+double stepsPerSecond;
+
+PID anglePid(&pitch, &stepsPerSecond, &setPoint, Kp, Ki, Kd, DIRECT);
 
 long lastUpdateTimeMs = millis();
-int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
-boolean fallen = false;
-float pitchCorrection = -0.87; // The pitch value when vertical, corrects construction errors
-
 void setup() {
   Serial.begin(57600);
   Serial.println("Dexter is starting...");
   //btSerial.begin(38400); //Baud rate may vary depending on your chip's settings!
-  imuSerial.begin(38400);
-  imuSerial.listen();
-  serialCommand.addCommand("R", rollReceived);
-  serialCommand.addCommand("P", pitchReceived);
-  serialCommand.addCommand("Y", yawReceived);
-  serialCommand.addDefaultHandler(unrecognized);
+  //imuSerial.begin(38400);
+  //imuSerial.listen();
+  addSerialHandlers();
+  anglePid.SetMode(AUTOMATIC);
+  anglePid.SetOutputLimits(-getMaxSpeed(), getMaxSpeed());
   enableSteppers();
 }
 
 void loop() {
-  checkForFall(controller.pitch);
-  
-  if (fallen) {
-    releaseMotors();
-  } 
   
   if (millis() - lastUpdateTimeMs < 1000 / FREQUENCY) {
     return;
@@ -45,27 +44,30 @@ void loop() {
   
   serialCommand.readSerial();
   
-  MotorSpeed speeds = controller.calculateMotorSpeeds(0);
-  setLeftSpeed(speeds.left);
-  setRightSpeed(speeds.right);
+  if (fallen()) {
+    stepsPerSecond = 0;
+  } else {
+    anglePid.Compute(); // updates stepsPerSecond
+  }
+  
+  Serial.println(stepsPerSecond);
+  setLeftSpeed(stepsPerSecond);
+  setRightSpeed(stepsPerSecond);
 }
 
-void rollReceived() {
-  double roll = wrapAngle(atof(serialCommand.next()));
-  //logAngle("Roll", roll);
-  controller.roll = roll;
+void addSerialHandlers() {
+  serialCommand.addCommand("R", rollReceived);
+  serialCommand.addCommand("P", pitchReceived);
+  serialCommand.addCommand("Y", yawReceived);
+  serialCommand.addDefaultHandler(unrecognized);
 }
 
+void rollReceived() {}
+void yawReceived() {}
 void pitchReceived() {
-  double pitch = wrapAngle(atof(serialCommand.next())) - pitchCorrection;
+  double newPitch = wrapAngle(atof(serialCommand.next())) - pitchCorrection;
   //logAngle("Pitch", pitch);
-  controller.pitch = 0.5 * controller.pitch + 0.5 * pitch;
-}
-
-void yawReceived() {
-  double yaw = wrapAngle(atof(serialCommand.next()));
-  //logAngle("Yaw", yaw);
-  controller.yaw = yaw;
+  pitch = 0.5 * pitch + 0.5 * newPitch;
 }
 
 void unrecognized() {
@@ -83,8 +85,8 @@ void releaseMotors(){
   setRightSpeed(0);
 }
 
-void checkForFall(double pitch) {
-  fallen = pitch > fallThreshold || pitch < - fallThreshold;
+bool fallen() {
+  pitch > fallThreshold || pitch < - fallThreshold;
 }
 
 // adds and subtracts 360 degrees until angle is between -180 and 180
