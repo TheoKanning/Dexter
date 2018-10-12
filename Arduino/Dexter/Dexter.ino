@@ -17,7 +17,7 @@ SoftwareSerial imuSerial(5, 4);
 SerialCommand serialCommand(imuSerial);
 
 double setPoint = 0;
-double pitch = 10;
+double pitch = 0;
 double stepsPerSecond;
 
 PID anglePid(&pitch, &stepsPerSecond, &setPoint, Kp, Ki, Kd, DIRECT);

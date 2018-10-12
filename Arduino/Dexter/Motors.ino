@@ -33,13 +33,13 @@ void enableSteppers() {
   Timer3.attachInterrupt(rightStep);
 }
 
-void setLeftSpeed(int stepsPerSecond) {
+void setLeftSpeed(double stepsPerSecond) {
   stepsPerSecond = min(max(stepsPerSecond, -maxSpeed), maxSpeed);
   Timer1.setPeriod(1000000/abs(stepsPerSecond));
   setDirection(leftDirPin, stepsPerSecond);
 }
 
-void setRightSpeed(int stepsPerSecond) {
+void setRightSpeed(double stepsPerSecond) {
   stepsPerSecond = min(max(stepsPerSecond, -maxSpeed), maxSpeed);
   Timer3.setPeriod(1000000/abs(stepsPerSecond));
   setDirection(rightDirPin, stepsPerSecond);
