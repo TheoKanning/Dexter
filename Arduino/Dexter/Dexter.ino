@@ -3,18 +3,17 @@
 #include <PID_v1.h>
 
 #define BLUETOOTH_TIMEOUT 1000
-#define FREQUENCY 20 // number of motor updates per second
+#define FREQUENCY 80 // number of motor updates per second
 
-const double Kp = 0;
+const double Kp = 20;
 const double Ki = 0;
-const double Kd = 0;
+const double Kd = 5;
 const int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
-const float pitchCorrection = -0.87; // The pitch value when vertical, corrects construction errors
-
+const float pitchCorrection = -0.4; // The pitch value when vertical, corrects construction errors
 SoftwareSerial btSerial(3, 2); //RX | TX pins
-SoftwareSerial imuSerial(5, 4);
+SoftwareSerial imuSerial(5, 4); //D0, B7
 
-SerialCommand serialCommand(imuSerial);
+SerialCommand serialCommand;
 
 double setPoint = 0;
 double pitch = 0;
@@ -23,9 +22,13 @@ double stepsPerSecond;
 PID anglePid(&pitch, &stepsPerSecond, &setPoint, Kp, Ki, Kd, DIRECT);
 
 long lastUpdateTimeMs = millis();
+
+String bufferString = "";
+
 void setup() {
   Serial.begin(57600);
   Serial.println("Dexter is starting...");
+  Serial1.begin(38400);
   //btSerial.begin(38400); //Baud rate may vary depending on your chip's settings!
   //imuSerial.begin(38400);
   //imuSerial.listen();
@@ -36,6 +39,15 @@ void setup() {
 }
 
 void loop() {
+
+  while (Serial1.available() > 0) {
+    char newChar = (char)Serial1.read();
+    bufferString += newChar;
+    if (newChar == '\n') {
+      getPitch(bufferString);
+      bufferString = "";
+    }
+  }
   
   if (millis() - lastUpdateTimeMs < 1000 / FREQUENCY) {
     return;
@@ -45,12 +57,11 @@ void loop() {
   serialCommand.readSerial();
   
   if (fallen()) {
-    stepsPerSecond = 0;
+    stepsPerSecond = 1;
   } else {
     anglePid.Compute(); // updates stepsPerSecond
   }
   
-  Serial.println(stepsPerSecond);
   setLeftSpeed(stepsPerSecond);
   setRightSpeed(stepsPerSecond);
 }
@@ -66,7 +77,17 @@ void rollReceived() {}
 void yawReceived() {}
 void pitchReceived() {
   double newPitch = wrapAngle(atof(serialCommand.next())) - pitchCorrection;
-  //logAngle("Pitch", pitch);
+  logAngle("Pitch", pitch);
+  pitch = 0.5 * pitch + 0.5 * newPitch;
+}
+
+void getPitch(String input) {
+  if (input[0] != 'P') {
+    return;
+  }
+  
+  double newPitch = wrapAngle(input.substring(2).toFloat()) - pitchCorrection;
+  logAngle("Pitch", pitch);
   pitch = 0.5 * pitch + 0.5 * newPitch;
 }
 
@@ -86,7 +107,7 @@ void releaseMotors(){
 }
 
 bool fallen() {
-  pitch > fallThreshold || pitch < - fallThreshold;
+  return pitch > fallThreshold || pitch < - fallThreshold;
 }
 
 // adds and subtracts 360 degrees until angle is between -180 and 180

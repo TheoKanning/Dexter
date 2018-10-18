@@ -2,6 +2,7 @@
 #include <TimerThree.h>
 
 const int maxSpeed = 400; // steps/sec
+const int microsteps = 16; // A4988 is set for 1/16th steps
 
 const int leftStepPin  = 15; // B6
 const int leftDirPin   = 14; // B5
@@ -35,13 +36,13 @@ void enableSteppers() {
 
 void setLeftSpeed(double stepsPerSecond) {
   stepsPerSecond = min(max(stepsPerSecond, -maxSpeed), maxSpeed);
-  Timer1.setPeriod(1000000/abs(stepsPerSecond));
-  setDirection(leftDirPin, stepsPerSecond);
+  Timer1.setPeriod(1000000/abs(stepsPerSecond * microsteps));
+  setDirection(leftDirPin, -stepsPerSecond); // negative for left motor
 }
 
 void setRightSpeed(double stepsPerSecond) {
   stepsPerSecond = min(max(stepsPerSecond, -maxSpeed), maxSpeed);
-  Timer3.setPeriod(1000000/abs(stepsPerSecond));
+  Timer3.setPeriod(1000000/abs(stepsPerSecond * microsteps));
   setDirection(rightDirPin, stepsPerSecond);
 }
 

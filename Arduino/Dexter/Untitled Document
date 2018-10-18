@@ -15,3 +15,7 @@ Stepper Motor https://www.sparkfun.com/products/9238
 green + gray
 yellow + red
 Wheels and couplers
+
+PID library
+
+https://github.com/sparkfun/MPU-9250_Breakout/tree/master/Libraries/Arduino
