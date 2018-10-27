@@ -48,62 +48,10 @@ void enableImu()
   {
     Serial.println("MPU9250 is online...");
 
-    // Start by performing self test and reporting values
-    myIMU.MPU9250SelfTest(myIMU.SelfTest);
-    Serial.print("x-axis self test: acceleration trim within : ");
-    Serial.print(myIMU.SelfTest[0],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: acceleration trim within : ");
-    Serial.print(myIMU.SelfTest[1],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: acceleration trim within : ");
-    Serial.print(myIMU.SelfTest[2],1); Serial.println("% of factory value");
-    Serial.print("x-axis self test: gyration trim within : ");
-    Serial.print(myIMU.SelfTest[3],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: gyration trim within : ");
-    Serial.print(myIMU.SelfTest[4],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: gyration trim within : ");
-    Serial.print(myIMU.SelfTest[5],1); Serial.println("% of factory value");
-
-    // Calibrate gyro and accelerometers, load biases in bias registers
-    myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias);
-    Serial.print("Calculated gyro biases");
-    Serial.print(myIMU.gyroBias[0]);
-    Serial.print(" ");
-    Serial.print(myIMU.gyroBias[1]);
-    Serial.print(" ");
-    Serial.println(myIMU.gyroBias[2]);
-    
-    Serial.print("Calculated accel biases");
-    Serial.print(myIMU.accelBias[0]);
-    Serial.print(" ");
-    Serial.print(myIMU.accelBias[1]);
-    Serial.print(" ");
-    Serial.println(myIMU.accelBias[2]);
-
     myIMU.initMPU9250();
     // Initialize device for active mode read of acclerometer, gyroscope, and
     // temperature
     Serial.println("MPU9250 initialized for active data mode....");
-
-    // Read the WHO_AM_I register of the magnetometer, this is a good test of
-    // communication
-    byte d = myIMU.readByte(AK8963_ADDRESS, WHO_AM_I_AK8963);
-    Serial.print("AK8963 "); Serial.print("I AM "); Serial.print(d, HEX);
-    Serial.print(" I should be "); Serial.println(0x48, HEX);
-
-    // Get magnetometer calibration from AK8963 ROM
-    myIMU.initAK8963(myIMU.magCalibration);
-    // Initialize device for active mode read of magnetometer
-    Serial.println("AK8963 initialized for active data mode....");
-    if (SerialDebug)
-    {
-      //  Serial.println("Calibration values: ");
-      Serial.print("X-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.magCalibration[0], 2);
-      Serial.print("Y-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.magCalibration[1], 2);
-      Serial.print("Z-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.magCalibration[2], 2);
-    }
   } // if (c == 0x71)
   else
   {
@@ -186,27 +134,6 @@ void updateImu() {
   myIMU.gy = (float)myIMU.gyroCount[1]*myIMU.gRes;
   myIMU.gz = (float)myIMU.gyroCount[2]*myIMU.gRes;
 
-  myIMU.readMagData(myIMU.magCount);  // Read the x/y/z adc values
-  myIMU.getMres();
-  // User environmental x-axis correction in milliGauss, should be
-  // automatically calculated
-  myIMU.magbias[0] = +470.;
-  // User environmental x-axis correction in milliGauss TODO axis??
-  myIMU.magbias[1] = +120.;
-  // User environmental x-axis correction in milliGauss
-  myIMU.magbias[2] = +125.;
-
-  // Calculate the magnetometer values in milliGauss
-  // Include factory calibration per data sheet and user environmental
-  // corrections
-  // Get actual magnetometer value, this depends on scale being set
-  myIMU.mx = (float)myIMU.magCount[0]*myIMU.mRes*myIMU.magCalibration[0] -
-             myIMU.magbias[0];
-  myIMU.my = (float)myIMU.magCount[1]*myIMU.mRes*myIMU.magCalibration[1] -
-             myIMU.magbias[1];
-  myIMU.mz = (float)myIMU.magCount[2]*myIMU.mRes*myIMU.magCalibration[2] -
-             myIMU.magbias[2];
-
   // Must be called before updating quaternions!
   myIMU.updateTime();
 
@@ -234,13 +161,6 @@ void updateImu() {
       Serial.print(" Gz: ");
       Serial.print(myIMU.gz);
       Serial.println(" ");
-      
-      Serial.print("Yaw, Pitch, Roll: ");
-      Serial.print(myIMU.yaw, 2);
-      Serial.print(", ");
-      Serial.print(myIMU.pitch, 2);
-      Serial.print(", ");
-      Serial.println(myIMU.roll, 2);
 
       Serial.print("rate = ");
       Serial.print((float)myIMU.sumCount/myIMU.sum, 2);
