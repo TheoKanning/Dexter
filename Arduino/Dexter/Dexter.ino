@@ -41,7 +41,7 @@ void loop() {
   lastUpdateTime = micros();
   
   updateImu();
-  pitch = updateTestPitch();
+  pitch = updatePitch();
   
   if (fallen()) {
     stepsPerSecond = 1;

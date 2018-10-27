@@ -32,8 +32,7 @@ float gyro_bias[3];
 
 MPU9250 myIMU;
 
-float testPitch = 0;
-int testPitchCount = 0;
+int pitchCount = 0;
 
 void enableImu()
 {
@@ -173,26 +172,20 @@ void updateImu() {
     } // if (myIMU.delt_t > 500)
 }
 
-float updateTestPitch() {
-  float dt = 0.01; // 10Hz
-//  float accelPitch = -atan2(myIMU.ax, myIMU.az) * 180 / PI;
-//  testPitch = 0.99 * (testPitch + myIMU.gz * dt) + 0.01 * accelPitch;
+float updatePitch() {
+  float dt = 0.01; // 100Hz
   float accelPitch = -atan2(myIMU.ax - accel_bias[0], myIMU.az - accel_bias[2]) * 180 / PI;
-  testPitch = 0.99 * (testPitch + (myIMU.gy - gyro_bias[1])* dt) + 0.01 * accelPitch;
+  pitch = 0.99 * (pitch + (myIMU.gy - gyro_bias[1])* dt) + 0.01 * accelPitch;
 
-  if (testPitchCount > 10) {
-    testPitchCount = 0;
+  if (pitchCount > 10) {
+    pitchCount = 0;
     Serial.print("Accel only: ");
     Serial.print(accelPitch);
     Serial.print(" Gyro Value: ");
     Serial.print(myIMU.gy - gyro_bias[1]);
     Serial.print(" Final: ");
-    Serial.println(testPitch);
+    Serial.println(pitch);
   }
-  testPitchCount++;
-  return testPitch;
-}
-
-float getPitch() {
-  return myIMU.pitch;
+  pitchCount++;
+  return pitch;
 }
