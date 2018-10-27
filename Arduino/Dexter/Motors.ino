@@ -1,13 +1,13 @@
 #include <TimerOne.h>
 #include <TimerThree.h>
 
-const int maxSpeed = 400; // steps/sec
+const int maxSpeed = 500; // steps/sec
 const int microsteps = 16; // A4988 is set for 1/16th steps
 
-const int leftStepPin  = 15; // B6
-const int leftDirPin   = 14; // B5
-const int rightStepPin = 13; // B4
-const int rightDirPin  = 12; // D7
+const int leftStepPin  = 23; // B6
+const int leftDirPin   = 22; // B5
+const int rightStepPin = 21; // B4
+const int rightDirPin  = 20; // D7
 
 int getMaxSpeed() {
   return maxSpeed;
