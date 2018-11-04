@@ -20,5 +20,8 @@ PID library
 
 https://github.com/sparkfun/MPU-9250_Breakout/tree/master/Libraries/Arduino
 
-https://www.pololu.com/file/0J450/A4988.pdf page 7, "For some applications where microstepping at very low speeds is
-necessary"
+https://www.pololu.com/file/0J450/A4988.pdf page 7, "For some applications where microstepping at very low speeds is necessary"
+
+https://hackaday.com/2016/08/29/how-accurate-is-microstepping-really/
+
+https://playground.arduino.cc/Main/MPU-6050#sketch

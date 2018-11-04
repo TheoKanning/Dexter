@@ -34,6 +34,13 @@ MPU9250 myIMU;
 
 int pitchCount = 0;
 
+class Imu {
+
+  void sendMsg() {
+    
+  };
+};
+
 void enableImu()
 {
   Wire.begin();
@@ -173,7 +180,7 @@ void updateImu() {
 }
 
 float updatePitch() {
-  float dt = 0.01; // 100Hz
+  float dt = 0.005; // 200Hz
   float accelPitch = -atan2(myIMU.ax - accel_bias[0], myIMU.az - accel_bias[2]) * 180 / PI;
   pitch = 0.99 * (pitch + (myIMU.gy - gyro_bias[1])* dt) + 0.01 * accelPitch;
 

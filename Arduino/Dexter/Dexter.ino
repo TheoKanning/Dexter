@@ -2,12 +2,12 @@
 #include <PID_v1.h>
 
 #define BLUETOOTH_TIMEOUT 1000
-#define FREQUENCY 100 // number of motor updates per second
+#define FREQUENCY 200 // number of motor updates per second
 
-const double Kp = 35;
+const double Kp = 40;
 const double Ki = 0;
-const double Kd = 0.1;
-const int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
+const double Kd = 0;
+const int fallThreshold = 20; // give up if robot is more than this many degrees from vertical
 
 double setPoint = 0;
 double pitch = 0;

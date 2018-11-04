@@ -2,7 +2,7 @@
 #include <TimerThree.h>
 
 const int maxSpeed = 500; // steps/sec
-const int microsteps = 16; // A4988 is set for 1/16th steps
+const int microsteps = 8; // A4988 is set for 1/16th steps
 
 const int leftStepPin  = 23; // B6
 const int leftDirPin   = 22; // B5
