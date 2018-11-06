@@ -4,10 +4,10 @@
 #define BLUETOOTH_TIMEOUT 1000
 #define FREQUENCY 200 // number of motor updates per second
 
-const double Kp = 40;
+const double Kp = 30;
 const double Ki = 0;
-const double Kd = 0;
-const int fallThreshold = 20; // give up if robot is more than this many degrees from vertical
+const double Kd = 0.2;
+const int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
 
 double setPoint = 0;
 double pitch = 0;
@@ -22,10 +22,10 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
   Serial.begin(57600);
-  delay(500); // wait for serial to be available
+  delay(1000); // wait for serial to be available
   Serial.println("Dexter is starting...");
   digitalWrite(13, LOW);
-  enableImu();
+  MPU6050_setup();
   calibrateImu();
   anglePid.SetMode(AUTOMATIC);
   anglePid.SetOutputLimits(-getMaxSpeed(), getMaxSpeed());
@@ -39,8 +39,6 @@ void loop() {
     return;
   }
   lastUpdateTime = micros();
-  
-  updateImu();
   pitch = updatePitch();
   
   if (fallen()) {
@@ -48,7 +46,7 @@ void loop() {
   } else {
     anglePid.Compute(); // updates stepsPerSecond
     // add dead band for low speeds
-    if (stepsPerSecond < 5 && stepsPerSecond > -5) stepsPerSecond = 0.1;
+    //if (stepsPerSecond < 5 && stepsPerSecond > -5) stepsPerSecond = 0.1;
   }
 
   setLeftSpeed(stepsPerSecond);
