@@ -2,11 +2,11 @@
 #include <PID_v1.h>
 
 #define BLUETOOTH_TIMEOUT 1000
-#define FREQUENCY 200 // number of motor updates per second
+#define FREQUENCY 100 // number of motor updates per second
 
-const double Kp = 30;
+double Kp = 30;
 const double Ki = 0;
-const double Kd = 0.2;
+double Kd = 0;
 const int fallThreshold = 15; // give up if robot is more than this many degrees from vertical
 
 double setPoint = 0;
@@ -22,8 +22,10 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
   Serial.begin(57600);
+  Serial1.begin(38400);
   delay(1000); // wait for serial to be available
   Serial.println("Dexter is starting...");
+  Serial1.println("Dexter is starting...");
   digitalWrite(13, LOW);
   MPU6050_setup();
   calibrateImu();
@@ -38,6 +40,45 @@ void loop() {
   if (micros() - lastUpdateTime < 1000000 / FREQUENCY) {
     return;
   }
+
+  if (Serial.available()) {
+    char key = (char)Serial.read();
+    bool changed = true;
+    switch(key) {
+      case 'P':
+        Kp = 30;
+        break;
+      case 'p':
+        Kp = 15;
+        break;
+      case 'D':
+        Kd += 0.1;
+        break;
+      case 'd':
+        Kd -= 0.1;
+        break;
+      default:
+        changed = false;
+        break;
+    }
+    if (changed) {
+      anglePid = PID(&pitch, &stepsPerSecond, &setPoint, Kp, Ki, Kd, DIRECT);
+      anglePid.SetMode(AUTOMATIC);
+      anglePid.SetOutputLimits(-getMaxSpeed(), getMaxSpeed());
+      Serial.print("Kp: ");
+      Serial.print(Kp);
+      Serial.print(" Ki: ");
+      Serial.print(Ki);
+      Serial.print(" Kd: ");
+      Serial.print(Kd);
+      Serial.print(" Pitch: ");
+      Serial.print(pitch);
+      Serial.print(" Steps: ");
+      Serial.println(stepsPerSecond);
+    }
+    Serial.flush();
+  }
+  
   lastUpdateTime = micros();
   pitch = updatePitch();
   
@@ -45,6 +86,7 @@ void loop() {
     stepsPerSecond = 1;
   } else {
     anglePid.Compute(); // updates stepsPerSecond
+    //stepsPerSecond = calculateSpeed(pitch, setPoint, Kp, Kd);
     // add dead band for low speeds
     //if (stepsPerSecond < 5 && stepsPerSecond > -5) stepsPerSecond = 0.1;
   }

@@ -251,16 +251,17 @@ float updatePitch() {
 
   if (pitchCount > 25) {
     pitchCount = 0;
-//    Serial.print("X accel: ");
-//    Serial.print(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0]);
-//    Serial.print(" Z accel: ");
-//    Serial.println(accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]);
-    Serial.print("Accel only: ");
-    Serial.print(accelPitch);
-    Serial.print(" Gyro Value: ");
-    Serial.print(accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1]);
-    Serial.print(" Final: ");
-    Serial.println(pitch);
+//    Serial1.print(millis());
+//    Serial1.print('\t');
+//    Serial1.print(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0]);
+//    Serial1.print('\t');
+//    Serial1.print(accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]);
+//    Serial1.print('\t');
+//    Serial1.print(accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1]);
+//    Serial1.print('\t');
+//    Serial1.print(accelPitch);
+//    Serial1.print('\t');
+//    Serial1.println(pitch);
   }
   pitchCount++;
   return pitch;
