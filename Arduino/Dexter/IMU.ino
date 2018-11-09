@@ -202,12 +202,12 @@ void MPU6050_setup()
 }
 
 void calibrateImu() {
-  // read accel and gyro for 2 seconds and subtract the results from subsequent measurements
+  // read accel and gyro for 1 seconds and subtract the results from subsequent measurements
 
   long startTimeMs = millis();
   int count = 0;
 
-  while(millis() - startTimeMs < 2000) {
+  while(millis() - startTimeMs < 1000) {
     MPU6050_read_3axis();
     accel_bias[0] += accel_t_gyro.value.x_accel / ACCEL_RES;
     accel_bias[1] += accel_t_gyro.value.y_accel / ACCEL_RES;
@@ -216,6 +216,8 @@ void calibrateImu() {
     gyro_bias[0] += accel_t_gyro.value.x_gyro / GYRO_RES;
     gyro_bias[1] += accel_t_gyro.value.y_gyro / GYRO_RES;
     gyro_bias[2] += accel_t_gyro.value.z_gyro / GYRO_RES;
+
+    Serial.println(accel_t_gyro.value.y_gyro / GYRO_RES);
     
     delay(50);
     count++;
@@ -244,24 +246,23 @@ void calibrateImu() {
 
 float updatePitch() {
   MPU6050_read_3axis();
-  float dt = 0.005; // 200Hz
+  float dt = 0.01; // 100Hz
   float alpha = 0.01;
   float accelPitch = -atan2(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0], accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]) * 180 / PI;
   pitch = (1 - alpha) * (pitch + (accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1])* dt) + alpha * accelPitch;
 
   if (pitchCount > 25) {
     pitchCount = 0;
-//    Serial1.print(millis());
-//    Serial1.print('\t');
-//    Serial1.print(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0]);
-//    Serial1.print('\t');
-//    Serial1.print(accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]);
-//    Serial1.print('\t');
-//    Serial1.print(accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1]);
-//    Serial1.print('\t');
-//    Serial1.print(accelPitch);
-//    Serial1.print('\t');
-//    Serial1.println(pitch);
+//    Serial.print("Xaccel: ");
+//    Serial.print(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0]);
+//    Serial.print(" Zaccel: ");
+//    Serial.print(accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]);
+    Serial.print(" Ygyro: ");
+    Serial.print(accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1]);
+    Serial.print(" accelPitch: ");
+    Serial.print(accelPitch);
+    Serial.print(" pitch: ");
+    Serial.println(pitch);
   }
   pitchCount++;
   return pitch;
