@@ -6,13 +6,13 @@
 
 #define LOG_IMU false
 #define LOG_SPEED_PID false
-#define LOG_ANGLE_PID true
-#define LOG Serial //Serial or Serial1
+#define LOG_ANGLE_PID false
+#define LOG Serial1 //Serial or Serial1
 
 double speedKp = 0;
 double speedKd = 0;
 double angleKp = 50;
-double angleKd = 1;
+double angleKd = 0.3;
 const int fallThreshold = MAX_ANGLE; // give up if robot is more than this many degrees from vertical
 
 double setSpeed = 0;
@@ -29,8 +29,6 @@ void setup() {
   digitalWrite(13, HIGH);
   Serial.begin(57600);
   Serial1.begin(38400);
-  Serial.println("Dexter is starting...");
-  Serial1.println("Dexter is starting...");
   MPU6050_setup();
   delay(1000); // pause before starting IMU calibration
   digitalWrite(13, LOW); // turn off LED while calibrating
@@ -105,10 +103,10 @@ void checkForPidCommands() {
       LOG.print(angleKp);
       LOG.print(" angleKd: ");
       LOG.print(angleKd);
-//      Serial1.print("speedKp: ");
-//      Serial1.print(speedKp, 4);
-//      Serial1.print(" speedKd: ");
-//      Serial1.print(speedKd, 4);
+      LOG.print("speedKp: ");
+      LOG.print(speedKp, 4);
+      LOG.print(" speedKd: ");
+      LOG.print(speedKd, 4);
       LOG.print(" Pitch: ");
       LOG.print(pitch);
       LOG.print(" Steps: ");

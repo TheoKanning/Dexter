@@ -38,7 +38,7 @@ float speedPid(float speed, float setSpeed) {
 float anglePid(float angle, float setAngle) {
   float error = setAngle - (angle - angleOffset);
 
-  float derivError = (error - lastAngleError) / (FREQUENCY);
+  float derivError = (error - lastAngleError) * FREQUENCY;
   lastAngleError = error;
   
   float steps = error * angleKp + derivError * angleKd;
@@ -53,7 +53,7 @@ float anglePid(float angle, float setAngle) {
     LOG.print(" Kd: ");
     LOG.print(angleKd);
     LOG.print(" DerivSteps: ");
-    LOG.print(derivError * angleKd, 4);
+    LOG.print(derivError * angleKd);
     LOG.print(" Steps: ");
     LOG.print(steps);
     LOG.println("");
