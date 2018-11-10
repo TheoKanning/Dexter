@@ -1,5 +1,6 @@
 float sumSpeedError = 0;
 float lastSpeedError = 0;
+
 float lastAngleError = 0;
 float angleOffset = 0;
 
@@ -15,20 +16,22 @@ float speedPid(float speed, float setSpeed) {
   float angle = -(error * speedKp + sumSpeedError * 0.00001 + derivError * speedKd);
   angle = constrain(angle, -MAX_ANGLE, MAX_ANGLE);
 
-//  Serial.print("Set Speed: ");
-//  Serial.print(setSpeed);
-//  Serial.print(" speed: ");
-//  Serial.print(speed);
-//  Serial.print(" Error: ");
-//  Serial.print(error);
-//  Serial.print(" Kp: ");
-//  Serial.print(speedKp, 4);
-//  Serial.print(" Kd: ");
-//  Serial.print(speedKd, 4);
-//  Serial.print(" DerivSteps: ");
-//  Serial.print(derivError * speedKd);
-//  Serial.print(" Angle: ");
-//  Serial.println(angle);
+  #if LOG_SPEED_PID
+    LOG.print("Set Speed: ");
+    LOG.print(setSpeed);
+    LOG.print(" speed: ");
+    LOG.print(speed);
+    LOG.print(" Error: ");
+    LOG.print(error);
+    LOG.print(" Kp: ");
+    LOG.print(speedKp, 4);
+    LOG.print(" Kd: ");
+    LOG.print(speedKd, 4);
+    LOG.print(" DerivSteps: ");
+    LOG.print(derivError * speedKd);
+    LOG.print(" Angle: ");
+    LOG.println(angle);
+  #endif
   return angle;
 }
 
@@ -39,25 +42,21 @@ float anglePid(float angle, float setAngle) {
   lastAngleError = error;
   
   float steps = error * angleKp + derivError * angleKd;
+  
   steps = constrain(steps, -MAX_SPEED, MAX_SPEED);
 
-//  if (setAngle == 0) {
-//    if (steps > 0) {
-//      angleOffset += 0.001;
-//    } else if (steps < 0) {
-//      angleOffset -= 0.001;
-//    }
-//  }
-  
-//  Serial.print("Error: ");
-//  Serial.println(error);
-//  Serial.print("Kp: ");
-//  Serial.print(angleKp);
-//  Serial.print(" Kd: ");
-//  Serial.print(angleKd);
-//  Serial.print(" DerivSteps: ");
-//  Serial.println(derivError * Kd);
-//  Serial.print(" Steps: ");
-//  Serial.println(steps);
+  #if LOG_ANGLE_PID
+    LOG.print("Error: ");
+    LOG.print(error);
+    LOG.print(" Kp: ");
+    LOG.print(angleKp);
+    LOG.print(" Kd: ");
+    LOG.print(angleKd);
+    LOG.print(" DerivSteps: ");
+    LOG.print(derivError * angleKd, 4);
+    LOG.print(" Steps: ");
+    LOG.print(steps);
+    LOG.println("");
+  #endif
   return steps;
 }

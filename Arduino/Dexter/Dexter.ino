@@ -4,10 +4,15 @@
 #define MAX_SPEED 500
 #define MAX_ANGLE 15
 
+#define LOG_IMU false
+#define LOG_SPEED_PID false
+#define LOG_ANGLE_PID true
+#define LOG Serial //Serial or Serial1
+
 double speedKp = 0;
 double speedKd = 0;
-double angleKp = 55;
-double angleKd = 0.3;
+double angleKp = 50;
+double angleKd = 1;
 const int fallThreshold = MAX_ANGLE; // give up if robot is more than this many degrees from vertical
 
 double setSpeed = 0;
@@ -27,8 +32,8 @@ void setup() {
   Serial.println("Dexter is starting...");
   Serial1.println("Dexter is starting...");
   MPU6050_setup();
-  digitalWrite(13, LOW); // turn off LED while calibrating
   delay(1000); // pause before starting IMU calibration
+  digitalWrite(13, LOW); // turn off LED while calibrating
   calibrateImu();
   enableSteppers();
   digitalWrite(13, HIGH);
@@ -48,31 +53,16 @@ void loop() {
   if (fallen()) {
     stepsPerSecond = 1;
   } else {
-    //setAngle = speedPid(stepsPerSecond, setSpeed);
+    setAngle = speedPid(stepsPerSecond, setSpeed);
     stepsPerSecond = anglePid(pitch, setAngle);
   }
 
   setLeftSpeed(stepsPerSecond);
   setRightSpeed(stepsPerSecond);
-
-  //log();
 }
 
 bool fallen() {
   return pitch > fallThreshold || pitch < - fallThreshold;
-}
-
-void log() {
-  // log at a slower frequency
-  const int logFrequency = 5;
-  if (millis() - lastPrintTimeMs > 1000 / logFrequency) {
-    lastPrintTimeMs = millis();
-    
-    Serial.print("Pitch: ");
-    Serial.print(pitch);
-    Serial.print(" StepsPerSecond:");
-    Serial.println(stepsPerSecond);
-  }
 }
 
 void checkForPidCommands() {
@@ -111,18 +101,18 @@ void checkForPidCommands() {
         break;
     }
     if (changed) {
-      Serial1.print("angleKp: ");
-      Serial1.print(angleKp);
-      Serial1.print(" angleKd: ");
-      Serial1.print(angleKd);
+      LOG.print("angleKp: ");
+      LOG.print(angleKp);
+      LOG.print(" angleKd: ");
+      LOG.print(angleKd);
 //      Serial1.print("speedKp: ");
 //      Serial1.print(speedKp, 4);
 //      Serial1.print(" speedKd: ");
 //      Serial1.print(speedKd, 4);
-      Serial1.print(" Pitch: ");
-      Serial1.print(pitch);
-      Serial1.print(" Steps: ");
-      Serial1.println(stepsPerSecond);
+      LOG.print(" Pitch: ");
+      LOG.print(pitch);
+      LOG.print(" Steps: ");
+      LOG.println(stepsPerSecond);
     }
   }
 }

@@ -216,8 +216,6 @@ void calibrateImu() {
     gyro_bias[0] += accel_t_gyro.value.x_gyro / GYRO_RES;
     gyro_bias[1] += accel_t_gyro.value.y_gyro / GYRO_RES;
     gyro_bias[2] += accel_t_gyro.value.z_gyro / GYRO_RES;
-
-    Serial.println(accel_t_gyro.value.y_gyro / GYRO_RES);
     
     delay(50);
     count++;
@@ -230,18 +228,18 @@ void calibrateImu() {
     gyro_bias[1] /= count;
     gyro_bias[2] /= count;
 
-    Serial.print("Calculated accel biases ");
-    Serial.print(accel_bias[0]);
-    Serial.print(" ");
-    Serial.print(accel_bias[1]);
-    Serial.print(" ");
-    Serial.println(accel_bias[2]);
-    Serial.print("Calculated gyro biases ");
-    Serial.print(gyro_bias[0]);
-    Serial.print(" ");
-    Serial.print(gyro_bias[1]);
-    Serial.print(" ");
-    Serial.println(gyro_bias[2]);
+    LOG.print("Calculated accel biases ");
+    LOG.print(accel_bias[0]);
+    LOG.print(" ");
+    LOG.print(accel_bias[1]);
+    LOG.print(" ");
+    LOG.println(accel_bias[2]);
+    LOG.print("Calculated gyro biases ");
+    LOG.print(gyro_bias[0]);
+    LOG.print(" ");
+    LOG.print(gyro_bias[1]);
+    LOG.print(" ");
+    LOG.println(gyro_bias[2]);
 }
 
 float updatePitch() {
@@ -251,20 +249,22 @@ float updatePitch() {
   float accelPitch = -atan2(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0], accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]) * 180 / PI;
   pitch = (1 - alpha) * (pitch + (accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1])* dt) + alpha * accelPitch;
 
-  if (pitchCount > 25) {
-    pitchCount = 0;
-//    Serial.print("Xaccel: ");
-//    Serial.print(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0]);
-//    Serial.print(" Zaccel: ");
-//    Serial.print(accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]);
-    Serial.print(" Ygyro: ");
-    Serial.print(accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1]);
-    Serial.print(" accelPitch: ");
-    Serial.print(accelPitch);
-    Serial.print(" pitch: ");
-    Serial.println(pitch);
-  }
-  pitchCount++;
+  #if LOG_IMU
+    if (pitchCount > 25) {
+      pitchCount = 0;
+      LOG.print("Xaccel: ");
+      LOG.print(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0]);
+      LOG.print(" Zaccel: ");
+      LOG.print(accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]);
+      LOG.print(" Ygyro: ");
+      LOG.print(accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1]);
+      LOG.print(" accelPitch: ");
+      LOG.print(accelPitch);
+      LOG.print(" pitch: ");
+      LOG.println(pitch);
+    }
+    pitchCount++;
+  #endif
   return pitch;
 }
 
@@ -296,8 +296,8 @@ bool MPU6050_newData()
 
   error = MPU6050_read(MPU6050_INT_STATUS, &status, 1);
   if (error != 0) {
-    Serial.print("MPU6050 Error:");
-    Serial.println(error);
+    LOG.print("MPU6050 Error:");
+    LOG.println(error);
   }
   if (status & (0b00000001)) // Data ready?
     return true;
