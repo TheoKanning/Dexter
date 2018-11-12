@@ -167,6 +167,7 @@ float gyro_bias[3];
 accel_t_gyro_union accel_t_gyro;
 
 int pitchCount = 0;
+float previousPitch = 0;
 
 void MPU6050_setup()
 {
@@ -243,11 +244,12 @@ void calibrateImu() {
 
 float updatePitch() {
   MPU6050_read_3axis();
-  float dt = 0.01; // 100Hz
+  float dt = 1.0 / FREQUENCY; // 100Hz
   float alpha = 0.01;
   float accelPitch = -atan2(accel_t_gyro.value.x_accel / ACCEL_RES - accel_bias[0], accel_t_gyro.value.z_accel / ACCEL_RES - accel_bias[2]) * 180 / PI;
-  pitch = (1 - alpha) * (pitch + (accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1])* dt) + alpha * accelPitch;
-
+  float pitch = (1 - alpha) * (previousPitch + (accel_t_gyro.value.y_gyro / GYRO_RES - gyro_bias[1])* dt) + alpha * accelPitch;
+  float filtered = (pitch + previousPitch) / 2;
+  previousPitch = pitch;
   #if LOG_IMU
     if (pitchCount > 25) {
       pitchCount = 0;
@@ -264,7 +266,7 @@ float updatePitch() {
     }
     pitchCount++;
   #endif
-  return pitch;
+  return filtered;
 }
 
 void MPU6050_read_3axis()

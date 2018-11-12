@@ -31,8 +31,7 @@ float speedPid(float speed, float setSpeed) {
 }
 
 float anglePid(float angle, float setAngle) {
-  float error = (0.5) * (setAngle - angle) + 0.5 * lastAngleError;
-
+  float error = setAngle - angle;
   float derivError = (error - lastAngleError) * FREQUENCY;
   lastAngleError = error;
   

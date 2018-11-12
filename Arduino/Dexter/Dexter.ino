@@ -8,6 +8,7 @@
 #define LOG_SPEED_PID false
 #define LOG_ANGLE_PID true
 #define LOG Serial //Serial or Serial1
+#define TUNE_SERIAL Serial1
 
 double speedKp = 0;
 double speedKi = 0;
@@ -17,7 +18,6 @@ const int fallThreshold = MAX_ANGLE; // give up if robot is more than this many 
 
 double setSpeed = 0;
 double setAngle = 0;
-double pitch = 0;
 double speed = 0;
 double stepsPerSecond;
 
@@ -47,9 +47,9 @@ void loop() {
   checkForPidCommands();
   
   lastUpdateTime = micros();
-  pitch = updatePitch();
+  float pitch = updatePitch();
   
-  if (fallen()) {
+  if (fallen(pitch)) {
     stepsPerSecond = 1;
   } else {
     speed = 0.9 * speed + 0.1 * stepsPerSecond;
@@ -61,13 +61,13 @@ void loop() {
   setRightSpeed(stepsPerSecond);
 }
 
-bool fallen() {
+bool fallen(float pitch) {
   return pitch > fallThreshold || pitch < - fallThreshold;
 }
 
 void checkForPidCommands() {
-  if (Serial.available()) {
-    char key = (char)Serial.read();
+  if (TUNE_SERIAL.available()) {
+    char key = (char)TUNE_SERIAL.read();
     bool changed = true;
     switch(key) {
        case 'f':
@@ -107,18 +107,16 @@ void checkForPidCommands() {
         break;
     }
     if (changed) {
-      LOG.print("angleKp: ");
-      LOG.print(angleKp);
-      LOG.print(" angleKd: ");
-      LOG.print(angleKd);
-      LOG.print(" speedKp: ");
-      LOG.print(speedKp, 4);
-      LOG.print(" speedKi: ");
-      LOG.print(speedKi, 4);
-      LOG.print(" Pitch: ");
-      LOG.print(pitch);
-      LOG.print(" Steps: ");
-      LOG.println(stepsPerSecond);
+      TUNE_SERIAL.print("angleKp: ");
+      TUNE_SERIAL.print(angleKp);
+      TUNE_SERIAL.print(" angleKd: ");
+      TUNE_SERIAL.print(angleKd);
+      TUNE_SERIAL.print(" speedKp: ");
+      TUNE_SERIAL.print(speedKp, 4);
+      TUNE_SERIAL.print(" speedKi: ");
+      TUNE_SERIAL.print(speedKi, 4);
+      TUNE_SERIAL.print(" Steps: ");
+      TUNE_SERIAL.println(stepsPerSecond);
     }
   }
 }
