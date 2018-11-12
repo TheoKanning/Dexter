@@ -185,14 +185,13 @@ void MPU6050_setup()
   delay(125);
   // Clear the 'sleep' bit to start the sensor and select clock source
   MPU6050_write_reg (MPU6050_PWR_MGMT_1, 0x01);
-  //MPU6050_write_reg(MPU6050_PWR_MGMT_1,MPU6050_CLKSEL_Z);
 
   // Config Gyro scale (500deg/seg)
   MPU6050_write_reg(MPU6050_GYRO_CONFIG, MPU6050_FS_SEL_500);
   // Config Accel scale (2g)
   MPU6050_write_reg(MPU6050_ACCEL_CONFIG, MPU6050_AFS_SEL_2G);
   // Config Digital Low Pass Filter 10Hz
-  MPU6050_write_reg(MPU6050_CONFIG, MPU6050_DLPF_10HZ);
+  MPU6050_write_reg(MPU6050_CONFIG, MPU6050_DLPF_5HZ);
   // Set Sample Rate to 100Hz
   MPU6050_write_reg(MPU6050_SMPLRT_DIV, 9);  // 100Hz : Sample Rate = 1000 / (1 + SMPLRT_DIV) Hz
   // Data ready interrupt enable

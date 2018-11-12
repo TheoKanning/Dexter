@@ -1,20 +1,15 @@
-float sumSpeedError = 0;
-float lastSpeedError = 0;
+float speedIntError = 0;
 
 float lastAngleError = 0;
-float angleOffset = 0;
 
 float speedPid(float speed, float setSpeed) {
   float error = setSpeed - speed;
-  
-  sumSpeedError += error;
-  sumSpeedError = constrain(sumSpeedError, -100000, 100000);
-  
-  float derivError = (error - lastSpeedError) / (FREQUENCY);
-  lastSpeedError = error;
+  int maxAngle = 3;
+  speedIntError += constrain(error / FREQUENCY, -10, 10);
+  speedIntError = constrain(speedIntError, -maxAngle/speedKi, maxAngle/speedKi);
 
-  float angle = -(error * speedKp + sumSpeedError * 0.00001 + derivError * speedKd);
-  angle = constrain(angle, -MAX_ANGLE, MAX_ANGLE);
+  float angle = -(speedKp * error + speedKi * speedIntError);
+  angle = constrain(angle, -maxAngle, maxAngle);
 
   #if LOG_SPEED_PID
     LOG.print("Set Speed: ");
@@ -25,10 +20,10 @@ float speedPid(float speed, float setSpeed) {
     LOG.print(error);
     LOG.print(" Kp: ");
     LOG.print(speedKp, 4);
-    LOG.print(" Kd: ");
-    LOG.print(speedKd, 4);
-    LOG.print(" DerivSteps: ");
-    LOG.print(derivError * speedKd);
+    LOG.print(" Ki: ");
+    LOG.print(speedKi, 4);
+    LOG.print(" IntAngle: ");
+    LOG.print(- speedKi * speedIntError);
     LOG.print(" Angle: ");
     LOG.println(angle);
   #endif
@@ -36,24 +31,26 @@ float speedPid(float speed, float setSpeed) {
 }
 
 float anglePid(float angle, float setAngle) {
-  float error = setAngle - (angle - angleOffset);
+  float error = (0.5) * (setAngle - angle) + 0.5 * lastAngleError;
 
   float derivError = (error - lastAngleError) * FREQUENCY;
   lastAngleError = error;
   
-  float steps = error * angleKp + derivError * angleKd;
+  float steps = angleKp * error + angleKd * derivError;
   
   steps = constrain(steps, -MAX_SPEED, MAX_SPEED);
 
   #if LOG_ANGLE_PID
-    LOG.print("Error: ");
-    LOG.print(error);
-    LOG.print(" Kp: ");
-    LOG.print(angleKp);
-    LOG.print(" Kd: ");
-    LOG.print(angleKd);
+//    LOG.print("Error: ");
+//    LOG.print(error);
+//    LOG.print(" Kp: ");
+//    LOG.print(angleKp);
+//    LOG.print(" Kd: ");
+//    LOG.print(angleKd);
+    LOG.print(" PropSteps: ");
+    LOG.print(angleKp * error);
     LOG.print(" DerivSteps: ");
-    LOG.print(derivError * angleKd);
+    LOG.print(angleKd * derivError);
     LOG.print(" Steps: ");
     LOG.print(steps);
     LOG.println("");

@@ -6,18 +6,19 @@
 
 #define LOG_IMU false
 #define LOG_SPEED_PID false
-#define LOG_ANGLE_PID false
-#define LOG Serial1 //Serial or Serial1
+#define LOG_ANGLE_PID true
+#define LOG Serial //Serial or Serial1
 
 double speedKp = 0;
-double speedKd = 0;
+double speedKi = 0;
 double angleKp = 50;
-double angleKd = 0.3;
+double angleKd = 0.45;
 const int fallThreshold = MAX_ANGLE; // give up if robot is more than this many degrees from vertical
 
 double setSpeed = 0;
 double setAngle = 0;
 double pitch = 0;
+double speed = 0;
 double stepsPerSecond;
 
 long lastUpdateTime;
@@ -51,7 +52,8 @@ void loop() {
   if (fallen()) {
     stepsPerSecond = 1;
   } else {
-    setAngle = speedPid(stepsPerSecond, setSpeed);
+    speed = 0.9 * speed + 0.1 * stepsPerSecond;
+    setAngle = speedPid(speed, setSpeed);
     stepsPerSecond = anglePid(pitch, setAngle);
   }
 
@@ -64,8 +66,8 @@ bool fallen() {
 }
 
 void checkForPidCommands() {
-  if (Serial1.available()) {
-    char key = (char)Serial1.read();
+  if (Serial.available()) {
+    char key = (char)Serial.read();
     bool changed = true;
     switch(key) {
        case 'f':
@@ -94,6 +96,12 @@ void checkForPidCommands() {
       case 's':
         speedKp -= 0.001;
         break;
+      case 'I':
+        speedKi += 0.0005;
+        break;
+      case 'i':
+        speedKi -= 0.00015;
+        break;
       default:
         changed = false;
         break;
@@ -103,10 +111,10 @@ void checkForPidCommands() {
       LOG.print(angleKp);
       LOG.print(" angleKd: ");
       LOG.print(angleKd);
-      LOG.print("speedKp: ");
+      LOG.print(" speedKp: ");
       LOG.print(speedKp, 4);
-      LOG.print(" speedKd: ");
-      LOG.print(speedKd, 4);
+      LOG.print(" speedKi: ");
+      LOG.print(speedKi, 4);
       LOG.print(" Pitch: ");
       LOG.print(pitch);
       LOG.print(" Steps: ");
