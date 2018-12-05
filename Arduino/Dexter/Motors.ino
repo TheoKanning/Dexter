@@ -5,10 +5,14 @@
 
 const int microsteps = 8; // A4988 is set for 1/8th steps
 
-const int leftStepPin  = 23;
-const int leftDirPin   = 22;
-const int rightStepPin = 21;
+const int microstepPin1 = 6;
+const int microstepPin2 = 7;
+const int microstepPin3 = 8;
 const int rightDirPin  = 20;
+const int rightStepPin = 21;
+const int leftDirPin   = 22;
+const int leftStepPin  = 23;
+
 
 void leftStep() {
   digitalWrite(leftStepPin, HIGH);
@@ -21,14 +25,21 @@ void rightStep() {
 }
 
 void enableSteppers() {
-  pinMode(rightStepPin, OUTPUT);
+  pinMode(microstepPin1, OUTPUT);
+  pinMode(microstepPin2, OUTPUT);
+  pinMode(microstepPin3, OUTPUT);
+  
   pinMode(rightDirPin, OUTPUT);
-  pinMode(leftStepPin, OUTPUT);
+  pinMode(rightStepPin, OUTPUT);
   pinMode(leftDirPin, OUTPUT);
+  pinMode(leftStepPin, OUTPUT);
+  
   Timer1.initialize(TIMER_FREQ);
   Timer1.attachInterrupt(leftStep);
   Timer3.initialize(TIMER_FREQ);
   Timer3.attachInterrupt(rightStep);
+
+  setMicrosteps(microsteps);
 }
 
 void setLeftSpeed(double stepsPerSecond) {
@@ -48,5 +59,35 @@ void setDirection(int pin, int stepsPerSecond) {
     digitalWrite(pin, HIGH);
   } else {
     digitalWrite(pin, LOW);
+  }
+}
+
+void setMicrosteps(int microsteps) {
+  switch(microsteps) {
+    case 1:
+      digitalWrite(microstepPin1, LOW);
+      digitalWrite(microstepPin2, LOW);
+      digitalWrite(microstepPin3, LOW);
+      break;
+    case 2:
+      digitalWrite(microstepPin1, HIGH);
+      digitalWrite(microstepPin2, LOW);
+      digitalWrite(microstepPin3, LOW);
+      break;
+    case 4:
+      digitalWrite(microstepPin1, LOW);
+      digitalWrite(microstepPin2, HIGH);
+      digitalWrite(microstepPin3, LOW);
+      break;
+    case 8:
+      digitalWrite(microstepPin1, HIGH);
+      digitalWrite(microstepPin2, HIGH);
+      digitalWrite(microstepPin3, LOW);
+      break;
+    case 16:
+      digitalWrite(microstepPin1, HIGH);
+      digitalWrite(microstepPin2, HIGH);
+      digitalWrite(microstepPin3, HIGH);
+      break;
   }
 }
