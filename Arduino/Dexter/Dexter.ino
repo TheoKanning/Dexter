@@ -10,9 +10,9 @@
 #define LOG Serial //Serial or Serial1
 #define TUNE_SERIAL Serial1
 
-double speedKp = 0;
-double speedKi = 0;
-double angleKp = 50;
+double speedKp = 0.012;
+double speedKi = 0.0009;
+double angleKp = 95;
 double angleKd = 0.45;
 const int fallThreshold = MAX_ANGLE; // give up if robot is more than this many degrees from vertical
 
@@ -55,6 +55,7 @@ void loop() {
     speed = 0.9 * speed + 0.1 * stepsPerSecond;
     setAngle = speedPid(speed, setSpeed);
     stepsPerSecond = anglePid(pitch, setAngle);
+    stepsPerSecond = 0.2;
   }
 
   setLeftSpeed(stepsPerSecond);
@@ -71,11 +72,11 @@ void checkForPidCommands() {
     bool changed = true;
     switch(key) {
        case 'f':
-        setAngle = -1;
+        setSpeed = 10;
         lastSteerTime = millis();
         break;
       case 'b':
-        setAngle = 1;
+        setSpeed = -10;
         lastSteerTime = millis();
         break;
       case 'P':
@@ -97,7 +98,7 @@ void checkForPidCommands() {
         speedKp -= 0.001;
         break;
       case 'I':
-        speedKi += 0.0005;
+        speedKi += 0.00015;
         break;
       case 'i':
         speedKi -= 0.00015;

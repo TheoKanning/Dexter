@@ -43,19 +43,29 @@ void enableSteppers() {
 }
 
 void setLeftSpeed(double stepsPerSecond) {
-  stepsPerSecond = constrain(stepsPerSecond, -MAX_SPEED, MAX_SPEED);
+  stepsPerSecond = constrainSteps(stepsPerSecond);
   Timer1.setPeriod(TIMER_FREQ / abs(stepsPerSecond * microsteps));
-  setDirection(leftDirPin, -stepsPerSecond); // negative for left motor
+  setDirection(leftDirPin, stepsPerSecond);
 }
 
 void setRightSpeed(double stepsPerSecond) {
-  stepsPerSecond = constrain(stepsPerSecond, -MAX_SPEED, MAX_SPEED);
+  stepsPerSecond = constrainSteps(stepsPerSecond);
   Timer3.setPeriod(TIMER_FREQ / abs(stepsPerSecond * microsteps));
   setDirection(rightDirPin, stepsPerSecond);
 }
 
+double constrainSteps(int stepsPerSecond) {
+  // prevent instabilites at very low rates
+  if (stepsPerSecond < 0 && stepsPerSecond > -1) {
+    return -1;
+  } else if (stepsPerSecond >= 0 && stepsPerSecond < 1) {
+    return 1;
+  }
+  return constrain(stepsPerSecond, -MAX_SPEED, MAX_SPEED);
+}
+
 void setDirection(int pin, int stepsPerSecond) {
-  if (stepsPerSecond > 0) {
+  if (stepsPerSecond >= 0) {
     digitalWrite(pin, HIGH);
   } else {
     digitalWrite(pin, LOW);
