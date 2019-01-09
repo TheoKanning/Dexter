@@ -6,18 +6,20 @@
 
 #define LOG_IMU false
 #define LOG_SPEED_PID false
-#define LOG_ANGLE_PID true
+#define LOG_ANGLE_PID false
 #define LOG Serial //Serial or Serial1
 #define TUNE_SERIAL Serial1
 
-double speedKp = 0.020;
-double speedKi = 0.0009;
-double angleKp = 55;
+double speedKp = 0.03;
+double speedKd = 0.0002;
+double speedKi = 0.0006;
+double angleKp = 50;
 double angleKd = 0.45;
 const int fallThreshold = MAX_ANGLE; // give up if robot is more than this many degrees from vertical
 
 double setSpeed = 0;
 double setAngle = 0;
+double maxAccel = 1;
 double speed = 0;
 double stepsPerSecond;
 
@@ -49,9 +51,11 @@ void loop() {
   lastUpdateTime = micros();
   float pitch = updatePitch();
 
-  if (lastSteerTime < millis() - 5000) {
+  if (lastSteerTime < millis() - 20000) {
     setSpeed = 0;
   }
+
+//  setSpeed = twiddle(speed, pitch);
   
   if (fallen(pitch)) {
     stepsPerSecond = 1;
@@ -75,7 +79,7 @@ void checkForPidCommands() {
     bool changed = true;
     switch(key) {
        case 'f':
-        setSpeed = 30;
+        setSpeed = 50;
         lastSteerTime = millis();
         break;
       case 'b':
@@ -101,24 +105,34 @@ void checkForPidCommands() {
         speedKp -= 0.001;
         break;
       case 'I':
-        speedKi += 0.00015;
+        speedKi += 0.0001;
         break;
       case 'i':
-        speedKi -= 0.00015;
+        speedKi -= 0.0001;
         break;
+      case 'C':
+        speedKd += 0.00001;
+        break;
+      case 'c':
+        speedKd -= 0.00001;
+        break;
+      case 't':
+        startTwiddling();
       default:
         changed = false;
         break;
     }
     if (changed) {
-      TUNE_SERIAL.print("angleKp: ");
-      TUNE_SERIAL.print(angleKp);
-      TUNE_SERIAL.print(" angleKd: ");
-      TUNE_SERIAL.print(angleKd);
-      TUNE_SERIAL.print(" speedKp: ");
-      TUNE_SERIAL.print(speedKp, 4);
+      TUNE_SERIAL.print("\n\n\nspeedKp: ");
+      TUNE_SERIAL.println(speedKp, 3);
       TUNE_SERIAL.print(" speedKi: ");
-      TUNE_SERIAL.print(speedKi, 4);
+      TUNE_SERIAL.println(speedKi, 4);
+      TUNE_SERIAL.print(" speedKd: ");
+      TUNE_SERIAL.println(speedKd, 5);
+      TUNE_SERIAL.print(" angleKp: ");
+      TUNE_SERIAL.println(angleKp);
+      TUNE_SERIAL.print(" angleKd: ");
+      TUNE_SERIAL.println(angleKd, 3);
       TUNE_SERIAL.print(" Steps: ");
       TUNE_SERIAL.println(stepsPerSecond);
     }
