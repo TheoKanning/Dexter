@@ -1,5 +1,4 @@
 float speedIntError = 0;
-float lastSpeedError = 0;
 
 float lastAngleError = 0;
 
@@ -7,11 +6,8 @@ float speedPid(float speed, float setSpeed) {
   float error = setSpeed - speed;
   int maxAngle = 5;
   speedIntError += constrain(error / FREQUENCY, -10, 10);
-  speedIntError = constrain(speedIntError, -maxAngle/speedKi, maxAngle/speedKi);
-  float derivError = (error - lastSpeedError) * FREQUENCY;
-  lastSpeedError = error;
 
-  float angle = -(speedKp * error + speedKi * speedIntError + speedKd * derivError);
+  float angle = -(speedKp * error + speedKi * speedIntError);
   angle = constrain(angle, -maxAngle, maxAngle);
 
   #if LOG_SPEED_PID
@@ -19,10 +15,10 @@ float speedPid(float speed, float setSpeed) {
     LOG.print(setSpeed);
     LOG.print(" speed: ");
     LOG.print(speed / 20);
-//    LOG.print(" Error: ");
-//    LOG.print(error);
+    //LOG.print(" Error: ");
+    //LOG.print(error);
     LOG.print(" PropAngle: ");
-    LOG.print(error * speedKp);
+    LOG.print(- error * speedKp);
     LOG.print(" IntAngle: ");
     LOG.print(- speedKi * speedIntError);
     LOG.print(" Angle: ");
@@ -45,11 +41,6 @@ float anglePid(float angle, float setAngle) {
     LOG.print(angle);
     LOG.print(" SetAngle: ");
     LOG.print(setAngle);
-    
-//    LOG.print(" Kp: ");
-//    LOG.print(angleKp);
-//    LOG.print(" Kd: ");
-//    LOG.print(angleKd);
     LOG.print(" PropSteps: ");
     LOG.print(angleKp * error);
     LOG.print(" DerivSteps: ");

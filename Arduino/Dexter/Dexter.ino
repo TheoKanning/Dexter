@@ -1,17 +1,17 @@
-#define BLUETOOTH_TIMEOUT 1000
 #define FREQUENCY 100 // number of motor updates per second
 
 #define MAX_SPEED 500
 #define MAX_ANGLE 15
 
+#define BLUETOOTH Serial1
+#define USB Serial
 #define LOG_IMU false
 #define LOG_SPEED_PID false
 #define LOG_ANGLE_PID false
-#define LOG Serial //Serial or Serial1
-#define TUNE_SERIAL Serial1
+#define LOG USB //BLUETOOTH or USB
+#define TUNE_SERIAL BLUETOOTH
 
-double speedKp = 0.03;
-double speedKd = 0.0002;
+double speedKp = 0.027;
 double speedKi = 0.0006;
 double angleKp = 50;
 double angleKd = 0.45;
@@ -22,6 +22,7 @@ double setAngle = 0;
 double maxAccel = 1;
 double speed = 0;
 double stepsPerSecond;
+double differential = 0;
 
 long lastUpdateTime;
 long lastSteerTime;
@@ -55,7 +56,7 @@ void loop() {
     setSpeed = 0;
   }
 
-//  setSpeed = twiddle(speed, pitch);
+  setSpeed = twiddle(speed, pitch);
   
   if (fallen(pitch)) {
     stepsPerSecond = 1;
@@ -65,8 +66,8 @@ void loop() {
     stepsPerSecond = anglePid(pitch, setAngle);
   }
 
-  setLeftSpeed(stepsPerSecond);
-  setRightSpeed(stepsPerSecond);
+  setLeftSpeed(stepsPerSecond + differential);
+  setRightSpeed(stepsPerSecond - differential);
 }
 
 bool fallen(float pitch) {
@@ -110,25 +111,24 @@ void checkForPidCommands() {
       case 'i':
         speedKi -= 0.0001;
         break;
-      case 'C':
-        speedKd += 0.00001;
-        break;
-      case 'c':
-        speedKd -= 0.00001;
-        break;
       case 't':
         startTwiddling();
+        break;
+      case 'r':
+        differential += 20;
+        break;
+      case 'l':
+        differential -= 20;
       default:
         changed = false;
         break;
     }
+    LOG.print(key);
     if (changed) {
       TUNE_SERIAL.print("\n\n\nspeedKp: ");
       TUNE_SERIAL.println(speedKp, 3);
       TUNE_SERIAL.print(" speedKi: ");
       TUNE_SERIAL.println(speedKi, 4);
-      TUNE_SERIAL.print(" speedKd: ");
-      TUNE_SERIAL.println(speedKd, 5);
       TUNE_SERIAL.print(" angleKp: ");
       TUNE_SERIAL.println(angleKp);
       TUNE_SERIAL.print(" angleKd: ");
