@@ -24,6 +24,8 @@ import theo.dexter.DexterApplication;
 import theo.dexter.R;
 import theo.dexter.bluetooth.BluetoothConnection;
 import theo.dexter.bluetooth.BluetoothScanner;
+import theo.dexter.control.ControlCalculator;
+import theo.dexter.control.ControlCommand;
 
 /**
  * Fragment for steering car
@@ -32,6 +34,9 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
 
     private static final String TAG = "ControlFragment";
     public static final String ADDRESS_EXTRA = "ControlFragment.AddressExtra";
+
+    private static final String COMMAND_LINEAR = "L";
+    private static final String COMMAND_ANGULAR = "A";
 
     @Bind(R.id.control_drive)
     Button drive;
@@ -53,27 +58,14 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
         parked = true;
     }
 
-
     @Inject
     BluetoothScanner bluetoothScanner;
 
-    private String address;
     private BluetoothConnection bluetoothConnection;
 
     private SensorManager sensorManager;
     private Sensor accel;
-
-    private int xAxis = 0;
-    private int yAxis = 0;
-    private int motorLeft = 0;
-    private int motorRight = 0;
-    private int xMax = 7;
-    private int yMax = 5;
-    private int yThreshold = 50;
-    private final int pwmMax = 255;
-    private final int xR = 5;
-    private final String commandLeft = "L";
-    private final String commandRight = "R";
+    private ControlCalculator calculator = new ControlCalculator();
 
     private boolean parked = true;
 
@@ -88,7 +80,7 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         Bundle arguments = getArguments();
-        address = arguments.getString(ADDRESS_EXTRA);
+        String address = arguments.getString(ADDRESS_EXTRA);
 
         if(address == null){
             Log.e(TAG, "No address received");
@@ -130,14 +122,11 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
             return;
         }
 
-        String directionL = "";
-        String directionR = "";
-        String cmdSendL, cmdSendR;
         float xRaw, yRaw;        // RAW-value from Accelerometer sensor
 
         WindowManager windowMgr = (WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE);
         int rotationIndex = windowMgr.getDefaultDisplay().getRotation();
-        if (rotationIndex == 1 || rotationIndex == 3) {            // detect 90 or 270 degree rotation (îïðåäåëÿåì ïîâîðîò óñòðîéñòâà íà 90 èëè 270 ãðàäóñîâ)
+        if (rotationIndex == 1 || rotationIndex == 3) {            // detect 90 or 270 degree rotation
             xRaw = -e.values[1];
             yRaw = e.values[0];
         } else {
@@ -145,52 +134,10 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
             yRaw = e.values[1];
         }
 
-        xAxis = Math.round(xRaw * pwmMax / xR);
-        yAxis = Math.round(yRaw * pwmMax / yMax);
+        ControlCommand command = calculator.calculateControlCommand(xRaw, yRaw);
 
-        if (xAxis > pwmMax) xAxis = pwmMax;
-        else if (xAxis < -pwmMax)
-            xAxis = -pwmMax;        // negative - tilt right
-
-        if (yAxis > pwmMax) yAxis = pwmMax;
-        else if (yAxis < -pwmMax)
-            yAxis = -pwmMax;        // negative - tilt forward
-        else if (yAxis >= 0 && yAxis < yThreshold) yAxis = 0;
-        else if (yAxis < 0 && yAxis > -yThreshold) yAxis = 0;
-
-        if (xAxis > 0) {        // if tilt to left, slow down the left engine
-            motorRight = yAxis;
-            if (Math.abs(Math.round(xRaw)) > xR) {
-                motorLeft = Math.round((xRaw - xR) * pwmMax / (xMax - xR));
-                motorLeft = Math.round(-motorLeft * yAxis / pwmMax);
-                //if(motorLeft < -pwmMax) motorLeft = -pwmMax;
-            } else motorLeft = yAxis - yAxis * xAxis / pwmMax;
-        } else if (xAxis < 0) {        // tilt to right (íàêëîí âïðàâî)
-            motorLeft = yAxis;
-            if (Math.abs(Math.round(xRaw)) > xR) {
-                motorRight = Math.round((Math.abs(xRaw) - xR) * pwmMax / (xMax - xR));
-                motorRight = Math.round(-motorRight * yAxis / pwmMax);
-                //if(motorRight > -pwmMax) motorRight = -pwmMax;
-            } else motorRight = yAxis - yAxis * Math.abs(xAxis) / pwmMax;
-        } else if (xAxis == 0) {
-            motorLeft = yAxis;
-            motorRight = yAxis;
-        }
-
-        if (motorLeft > 0) {            // tilt to backward (íàêëîí íàçàä)
-            directionL = "-";
-        }
-        if (motorRight > 0) {        // tilt to backward (íàêëîí íàçàä)
-            directionR = "-";
-        }
-        motorLeft = Math.abs(motorLeft);
-        motorRight = Math.abs(motorRight);
-
-        if (motorLeft > pwmMax) motorLeft = pwmMax;
-        if (motorRight > pwmMax) motorRight = pwmMax;
-
-        cmdSendL = String.valueOf(commandLeft + directionL + motorLeft + "\r");
-        cmdSendR = String.valueOf(commandRight + directionR + motorRight + "\r");
+        String cmdSendL = String.valueOf(COMMAND_LINEAR + command.getLinearVelocity() + "\r\n");
+        String cmdSendR = String.valueOf(COMMAND_ANGULAR + command.getAngularVelocity() + "\r\n");
 
         bluetoothConnection.write(cmdSendL + cmdSendR);
         Log.d(TAG, cmdSendL + cmdSendR);
@@ -200,8 +147,6 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
-
-
 
     @Override
     public void onMessageReceived(String message) {
