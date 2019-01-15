@@ -4,7 +4,7 @@ class ControlCalculator {
 
     companion object {
         const val accelThreshold = 1.0 // minimum acceleration to give a response
-        const val accelMax = 10.0 // truncate any acceleration beyond this
+        const val accelMax = 5.0 // truncate any acceleration beyond this
         const val linearMax = 1.0 // maximum linear velocity (m/s)
         const val angularMax = 3.14 // maximum angular velocity (rad/sec)
     }
@@ -18,8 +18,8 @@ class ControlCalculator {
         val xConstrained = constrain(threshold(xAccel))
         val yConstrained = -constrain(threshold(yAccel)) // negative yAccel means tilting forward
 
-        val linear = yConstrained / accelMax * linearMax
-        val angular = xConstrained / accelMax * angularMax
+        val linear = round(yConstrained / accelMax * linearMax)
+        val angular = round(xConstrained / accelMax * angularMax)
 
         return ControlCommand(linear, angular)
     }
@@ -42,4 +42,9 @@ class ControlCalculator {
             } else {
                 accel + accelThreshold
             }
+
+    /**
+     * Rounds to two decimal places
+     */
+    private fun round(speed: Double) = Math.round(speed * 100.0) / 100.0
 }

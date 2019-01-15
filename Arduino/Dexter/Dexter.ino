@@ -1,4 +1,5 @@
 #define FREQUENCY 100 // number of motor updates per second
+#define BLUETOOTH_TIMEOUT 1000 // stop after this many milliseconds without a bluetooth command
 
 #define MAX_SPEED 500
 #define MAX_ANGLE 15
@@ -52,11 +53,12 @@ void loop() {
   lastUpdateTime = micros();
   float pitch = updatePitch();
 
-  if (lastSteerTime < millis() - 20000) {
+  if (lastSteerTime < millis() - BLUETOOTH_TIMEOUT) {
     setSpeed = 0;
+    differential = 0;
   }
 
-  setSpeed = twiddle(speed, pitch);
+  // setSpeed = twiddle(speed, pitch);
   
   if (fallen(pitch)) {
     stepsPerSecond = 1;
@@ -66,8 +68,8 @@ void loop() {
     stepsPerSecond = anglePid(pitch, setAngle);
   }
 
-  setLeftSpeed(stepsPerSecond + differential);
-  setRightSpeed(stepsPerSecond - differential);
+  setLeftSpeed(stepsPerSecond - differential);
+  setRightSpeed(stepsPerSecond + differential);
 }
 
 bool fallen(float pitch) {
@@ -77,6 +79,7 @@ bool fallen(float pitch) {
 void checkForPidCommands() {
   if (TUNE_SERIAL.available()) {
     char key = (char)TUNE_SERIAL.read();
+    USB.print(key);
     bool changed = true;
     switch(key) {
        case 'f':
@@ -114,17 +117,19 @@ void checkForPidCommands() {
       case 't':
         startTwiddling();
         break;
-      case 'r':
-        differential += 20;
+      case 'L':
+        setSpeed = TUNE_SERIAL.parseFloat() * 100;
+        lastSteerTime = millis();
         break;
-      case 'l':
-        differential -= 20;
+      case 'A':
+        differential = TUNE_SERIAL.parseFloat() * 30;
+        lastSteerTime = millis();
       default:
         changed = false;
         break;
     }
-    LOG.print(key);
     if (changed) {
+      lastSteerTime = millis();
       TUNE_SERIAL.print("\n\n\nspeedKp: ");
       TUNE_SERIAL.println(speedKp, 3);
       TUNE_SERIAL.print(" speedKi: ");
