@@ -143,11 +143,6 @@ public class ControlFragment extends Fragment implements SensorEventListener, Bl
     }
 
     @Override
-    public void onMessageReceived(String message) {
-
-    }
-
-    @Override
     public void onConnect() {
         Toast.makeText(getContext(), "Connected!", Toast.LENGTH_SHORT).show();
         Log.i("ControlFragment", "Connected");
