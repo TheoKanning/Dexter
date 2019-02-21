@@ -19,12 +19,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
-import javax.inject.Inject;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import theo.dexter.DexterApplication;
 import theo.dexter.R;
 import theo.dexter.bluetooth.BluetoothConnection;
 import theo.dexter.bluetooth.BluetoothScanner;
@@ -62,7 +59,6 @@ public class ControlFragment extends Fragment implements SensorEventListener, Bl
         parked = true;
     }
 
-    @Inject
     BluetoothScanner bluetoothScanner;
 
     private BluetoothConnection bluetoothConnection;
@@ -77,8 +73,9 @@ public class ControlFragment extends Fragment implements SensorEventListener, Bl
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_control, container, false);
-        ((DexterApplication) getActivity().getApplication()).getComponent().inject(this);
         ButterKnife.bind(this, view);
+
+        bluetoothScanner = new BluetoothScanner(getContext());
 
         sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
