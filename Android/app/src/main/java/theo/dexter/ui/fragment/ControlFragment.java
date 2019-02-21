@@ -1,7 +1,10 @@
 package theo.dexter.ui.fragment;
 
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -30,10 +33,10 @@ import theo.dexter.control.ControlCommand;
 /**
  * Fragment for steering car
  */
-public class ControlFragment extends BaseFragment implements SensorEventListener, BluetoothConnection.BluetoothConnectionListener{
+public class ControlFragment extends BaseFragment implements SensorEventListener, BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
 
     private static final String TAG = "ControlFragment";
-    public static final String ADDRESS_EXTRA = "ControlFragment.AddressExtra";
+    private static final int REQUEST_ENABLE_BT = 1;
 
     private static final String COMMAND_LINEAR = "L";
     private static final String COMMAND_ANGULAR = "A";
@@ -79,15 +82,6 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
         sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        Bundle arguments = getArguments();
-        String address = arguments.getString(ADDRESS_EXTRA);
-
-        if(address == null){
-            Log.e(TAG, "No address received");
-        } else {
-            bluetoothConnection = new BluetoothConnection(bluetoothScanner.getDevices(address), this);
-        }
-
         return view;
     }
 
@@ -95,7 +89,14 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     public void onResume() {
         super.onResume();
         park();
+
+        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
         sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL);
+        bluetoothScanner.startScan(this);
     }
 
     @Override
@@ -108,7 +109,7 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent e) {
 
-        if(!bluetoothConnection.isConnected()){
+        if(bluetoothConnection != null && !bluetoothConnection.isConnected()){
             Log.d(TAG, "BluetoothConnection.isConnected returned false");
             return;
         }
@@ -156,7 +157,15 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
 
     @Override
     public void onDisconnect() {
-        Toast.makeText(getContext(), "Disconnect...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Disconnected...", Toast.LENGTH_SHORT).show();
         Log.i("ControlFragment", "Disconnected");
+    }
+
+    @Override
+    public void onBluetoothDeviceDiscovered(BluetoothDevice device) {
+        if (device.getName().equals("Dexter")) {
+            bluetoothScanner.stopScan();
+            bluetoothConnection = new BluetoothConnection(device, this);
+        }
     }
 }
