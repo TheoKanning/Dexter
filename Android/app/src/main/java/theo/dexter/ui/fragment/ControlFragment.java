@@ -156,10 +156,12 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     @Override
     public void onConnect() {
         Toast.makeText(getContext(), "Connected!", Toast.LENGTH_SHORT).show();
+        Log.i("ControlFragment", "Connected");
     }
 
     @Override
     public void onDisconnect() {
-
+        Toast.makeText(getContext(), "Disconnect...", Toast.LENGTH_SHORT).show();
+        Log.i("ControlFragment", "Disconnected");
     }
 }

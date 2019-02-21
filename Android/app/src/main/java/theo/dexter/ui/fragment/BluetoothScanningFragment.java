@@ -8,13 +8,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
-import java.util.ArrayList;
+import javax.inject.Inject;
 
-import butterknife.Bind;
 import butterknife.ButterKnife;
 import theo.dexter.DexterApplication;
 import theo.dexter.R;
@@ -24,17 +20,12 @@ import theo.dexter.ui.activity.PlayActivity;
 /**
  * Fragment to choose from paired bluetooth devices
  */
-public class BluetoothScanningFragment extends BaseFragment implements BluetoothScanner.OnBluetoothDeviceDiscoveredListener, AdapterView.OnItemClickListener {
+public class BluetoothScanningFragment extends BaseFragment implements BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
 
     private static final int REQUEST_ENABLE_BT = 1;
 
-    @Bind(R.id.device_list)
-    ListView deviceList;
-
-    private ArrayAdapter<String> adapter;
-    private ArrayList<BluetoothDevice> devices;
-
-    private BluetoothScanner bluetoothScanner;
+    @Inject
+    BluetoothScanner bluetoothScanner;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,8 +41,6 @@ public class BluetoothScanningFragment extends BaseFragment implements Bluetooth
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
-        bluetoothScanner = new BluetoothScanner(getContext());
-
         return view;
     }
 
@@ -65,34 +54,20 @@ public class BluetoothScanningFragment extends BaseFragment implements Bluetooth
      * Clears all data and begins new scan
      */
     private void scan() {
-        //btService.stopScan();
-
-        devices = new ArrayList<>();
-        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, new ArrayList<String>());
-        deviceList.setAdapter(adapter);
-        deviceList.setOnItemClickListener(this);
-
         bluetoothScanner.startScan(this);
-
-        //btService.startScan(this);
     }
 
 
     @Override
-    public void OnBluetoothDeviceDiscovered(BluetoothDevice device) {
-        devices.add(device);
-        adapter.add(device.getName() + "\n" + device.getAddress());
-    }
+    public void onBluetoothDeviceDiscovered(BluetoothDevice device) {
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        bluetoothScanner.stopScan();
+        if (device.getName().equals("Dexter")) {
+            bluetoothScanner.stopScan();
 
-        BluetoothDevice selected = devices.get(position);
-
-        Intent i = new Intent(getActivity(), PlayActivity.class);
-        i.putExtra(ControlFragment.ADDRESS_EXTRA, selected.getAddress());
-        startActivity(i);
+            Intent i = new Intent(getActivity(), PlayActivity.class);
+            i.putExtra(ControlFragment.ADDRESS_EXTRA, device.getAddress());
+            startActivity(i);
+        }
     }
 
     @Override

@@ -54,6 +54,7 @@ void loop() {
   float pitch = updatePitch();
 
   if (lastSteerTime < millis() - BLUETOOTH_TIMEOUT) {
+    USB.println("Timed out");
     setSpeed = 0;
     differential = 0;
   }
@@ -118,11 +119,11 @@ void checkForPidCommands() {
         startTwiddling();
         break;
       case 'L':
-        setSpeed = TUNE_SERIAL.parseFloat() * 100;
+        //setSpeed = TUNE_SERIAL.parseFloat() * 100;
         lastSteerTime = millis();
         break;
       case 'A':
-        differential = TUNE_SERIAL.parseFloat() * 30;
+        //differential = TUNE_SERIAL.parseFloat() * 30;
         lastSteerTime = millis();
       default:
         changed = false;

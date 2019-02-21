@@ -104,7 +104,6 @@ public class BluetoothConnection {
 
             // Get a BluetoothSocket to connect with the given BluetoothDevice
             try {
-                // MY_UUID is the app's UUID string, also used by the server code
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) { }
             bluetoothSocket = tmp;
@@ -119,6 +118,7 @@ public class BluetoothConnection {
                 bluetoothConnectionListener.onConnect();
             } catch (IOException connectException) {
                 // Unable to connect; close the bluetoothSocket and get out
+                Log.e(TAG, "Unable to connect to device", connectException);
                 try {
                     bluetoothSocket.close();
                 } catch (IOException closeException) {  }

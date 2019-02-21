@@ -17,7 +17,7 @@ import android.widget.Toast;
 public class BluetoothScanner {
 
     public interface OnBluetoothDeviceDiscoveredListener{
-        void OnBluetoothDeviceDiscovered(BluetoothDevice device);
+        void onBluetoothDeviceDiscovered(BluetoothDevice device);
     }
 
     private static final String TAG = BluetoothScanner.class.getSimpleName();
@@ -52,6 +52,9 @@ public class BluetoothScanner {
 
     public void startScan(OnBluetoothDeviceDiscoveredListener listener){
         this.listener = listener;
+        for (BluetoothDevice device: btAdapter.getBondedDevices()) {
+            listener.onBluetoothDeviceDiscovered(device);
+        }
         btAdapter.startDiscovery();
         Toast.makeText(context, "Scan started", Toast.LENGTH_SHORT).show();
 
@@ -75,7 +78,7 @@ public class BluetoothScanner {
             if (BluetoothDevice.ACTION_FOUND.equals(action) && listener != null) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if(device.getName() != null) {
-                    listener.OnBluetoothDeviceDiscovered(device);
+                    listener.onBluetoothDeviceDiscovered(device);
                 }
             }
         }
