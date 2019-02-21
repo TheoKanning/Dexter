@@ -10,8 +10,6 @@ import theo.dexter.ui.fragment.ControlFragment;
 @Singleton
 @Component(modules = DexterModule.class)
 public interface DexterComponent {
-    //activities
-
     //application
     void inject(Application application);
 

@@ -10,6 +10,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +34,7 @@ import theo.dexter.control.ControlCommand;
 /**
  * Fragment for steering car
  */
-public class ControlFragment extends BaseFragment implements SensorEventListener, BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
+public class ControlFragment extends Fragment implements SensorEventListener, BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
 
     private static final String TAG = "ControlFragment";
     private static final int REQUEST_ENABLE_BT = 1;
