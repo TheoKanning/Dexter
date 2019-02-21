@@ -29,7 +29,7 @@ import theo.dexter.control.ControlCalculator;
 import theo.dexter.control.ControlCommand;
 
 /**
- * Fragment for steering car
+ * Fragment for steering Dexter
  */
 public class ControlFragment extends Fragment implements SensorEventListener, BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
 

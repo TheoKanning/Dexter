@@ -35,8 +35,6 @@ public class BluetoothConnection {
 
     private BluetoothConnectionListener bluetoothConnectionListener;
 
-    private BluetoothDevice bluetoothDevice;
-
     private BluetoothHandler bluetoothHandler;
 
     private ConnectThread connectThread;
@@ -46,7 +44,6 @@ public class BluetoothConnection {
     private boolean isConnected = false;
 
     public BluetoothConnection(BluetoothDevice device, BluetoothConnectionListener listener) {
-        this.bluetoothDevice = device;
         this.bluetoothConnectionListener = listener;
         this.bluetoothHandler = new BluetoothHandler(listener);
         this.connectThread = new ConnectThread(device);
