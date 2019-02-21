@@ -1,25 +1,11 @@
 <resources>
     <string name="app_name">Dexter</string>
     <string name="action_settings">Settings</string>
-    
-    <!-- Mode Fragment -->
-    <string name="fragment_mode_title">Choose Your Weapon!</string>
-    <string name="fragment_mode_primary_button_text">Primary</string>
-    <string name="fragment_mode_primary_description">Control the car over WiFi (requires secondary device attached to car)</string>
-    <string name="fragment_mode_secondary_button_text">Secondary</string>
-    <string name="fragment_mode_secondary_description">Accept remote commands from primary device</string>
-    <string name="fragment_mode_play_button_text">Play</string>
-    <string name="fragment_mode_play_description">Control with Bluetooth!</string>
-    <string name="title_activity_play">PlayActivity</string>
 
     <!-- Bluetooth Fragment -->
-    <string name="fragment_bluetooth_title">Bluetooth Pairing</string>
     <string name="fragment_bluetooth_devices">Nearby Bluetooth Devices</string>
 
     <!-- Control Fragment -->
-    <string name="fragment_control_title">Control</string>
     <string name="fragment_control_park">Park</string>
     <string name="fragment_control_drive">Drive</string>
-
-
 </resources>

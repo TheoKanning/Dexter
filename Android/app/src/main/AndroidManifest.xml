@@ -19,13 +19,12 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name="theo.dexter.ui.activity.PlayActivity"
-            android:label="@string/title_activity_play"
+            android:label="@string/app_name"
             android:parentActivityName="theo.dexter.ui.activity.MainActivity"
             android:theme="@style/Theme.RobotCar"
             android:screenOrientation="landscape">

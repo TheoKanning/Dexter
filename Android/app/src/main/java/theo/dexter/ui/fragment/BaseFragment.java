@@ -4,7 +4,7 @@ import android.support.v4.app.Fragment;
 
 import theo.dexter.ui.activity.BaseActivity;
 
-public abstract class BaseFragment extends Fragment implements FragmentInterface {
+public abstract class BaseFragment extends Fragment {
 
     /**
      * Generic newinstance method to work for all fragments

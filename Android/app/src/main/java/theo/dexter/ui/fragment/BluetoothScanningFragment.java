@@ -69,9 +69,4 @@ public class BluetoothScanningFragment extends BaseFragment implements Bluetooth
             startActivity(i);
         }
     }
-
-    @Override
-    public int getTitleResourceId() {
-        return R.string.fragment_bluetooth_title;
-    }
 }

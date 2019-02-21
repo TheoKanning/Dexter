@@ -106,11 +106,6 @@ public class ControlFragment extends BaseFragment implements SensorEventListener
     }
 
     @Override
-    public int getTitleResourceId() {
-        return R.string.fragment_control_title;
-    }
-
-    @Override
     public void onSensorChanged(SensorEvent e) {
 
         if(!bluetoothConnection.isConnected()){
