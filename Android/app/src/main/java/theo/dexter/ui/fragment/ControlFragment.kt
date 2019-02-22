@@ -27,17 +27,16 @@ import kotlinx.android.synthetic.main.fragment_control.*
 /**
  * Fragment for steering Dexter
  */
-class ControlFragment : Fragment(), SensorEventListener, BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
+class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
 
     private lateinit var bluetoothScanner: BluetoothScanner
 
     private var bluetoothConnection: BluetoothConnection? = null
 
     private lateinit var sensorManager: SensorManager
-    private var accel: Sensor? = null
-    private val calculator = ControlCalculator()
+    private lateinit var accel: Sensor
 
-    private var parked = true
+    private val calculator = ControlCalculator()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -53,61 +52,51 @@ class ControlFragment : Fragment(), SensorEventListener, BluetoothConnection.Blu
 
     override fun onResume() {
         super.onResume()
-        stopDriving()
 
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
-        sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL)
         bluetoothScanner.startScan(this)
 
-        start.setOnClickListener { stopDriving() }
-        stop.setOnClickListener { startDriving() }
+        start.setOnClickListener { startDriving() }
+        stop.setOnClickListener { stopDriving() }
     }
 
     override fun onPause() {
         super.onPause()
-        sensorManager.unregisterListener(this)
+        stopDriving()
         bluetoothConnection?.disconnect()
     }
 
-    override fun onSensorChanged(e: SensorEvent) {
+    private val sensorListener = object: SensorEventListener {
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-        if (bluetoothConnection != null && !bluetoothConnection!!.isConnected) {
-            Log.d(TAG, "BluetoothConnection.isConnected returned false")
-            return
+        override fun onSensorChanged(event: SensorEvent) {
+            if (bluetoothConnection != null && !bluetoothConnection!!.isConnected) {
+                Log.d(TAG, "BluetoothConnection.isConnected returned false")
+                return
+            }
+
+            val xRaw: Float
+            val yRaw: Float        // RAW-value from Accelerometer sensor
+
+            val windowMgr = activity!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val rotationIndex = windowMgr.defaultDisplay.rotation
+            if (rotationIndex == 1 || rotationIndex == 3) {            // detect 90 or 270 degree rotation
+                xRaw = -event.values[1]
+                yRaw = event.values[0]
+            } else {
+                xRaw = event.values[0]
+                yRaw = event.values[1]
+            }
+
+            val command = calculator.calculateControlCommand(xRaw.toDouble(), yRaw.toDouble())
+
+            bluetoothConnection?.write(command.toString())
+            Log.d(TAG, command.toString())
         }
-
-        if (parked) {
-            return
-        }
-
-        val xRaw: Float
-        val yRaw: Float        // RAW-value from Accelerometer sensor
-
-        val windowMgr = activity!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val rotationIndex = windowMgr.defaultDisplay.rotation
-        if (rotationIndex == 1 || rotationIndex == 3) {            // detect 90 or 270 degree rotation
-            xRaw = -e.values[1]
-            yRaw = e.values[0]
-        } else {
-            xRaw = e.values[0]
-            yRaw = e.values[1]
-        }
-
-        val command = calculator.calculateControlCommand(xRaw.toDouble(), yRaw.toDouble())
-
-        val cmdSendL = COMMAND_LINEAR + command.linearVelocity + "\r\n"
-        val cmdSendR = COMMAND_ANGULAR + command.angularVelocity + "\r\n"
-
-        bluetoothConnection?.write(cmdSendL + cmdSendR)
-        Log.d(TAG, cmdSendL + cmdSendR)
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-
     }
 
     override fun onConnect() {
@@ -130,21 +119,17 @@ class ControlFragment : Fragment(), SensorEventListener, BluetoothConnection.Blu
     private fun startDriving() {
         start.visibility = View.GONE
         stop.visibility = View.VISIBLE
-        parked = false
+        sensorManager.registerListener(sensorListener, accel, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     private fun stopDriving() {
         start.visibility = View.VISIBLE
         stop.visibility = View.GONE
-        parked = true
+        sensorManager.unregisterListener(sensorListener)
     }
 
     companion object {
-
         private val TAG = "ControlFragment"
         private val REQUEST_ENABLE_BT = 1
-
-        private val COMMAND_LINEAR = "L"
-        private val COMMAND_ANGULAR = "A"
     }
 }
