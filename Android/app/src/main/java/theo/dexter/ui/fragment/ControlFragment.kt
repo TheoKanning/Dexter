@@ -58,7 +58,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
-        bluetoothScanner.startScan(this)
+        startSearching()
 
         start.setOnClickListener { startDriving() }
         stop.setOnClickListener { stopDriving() }
@@ -100,6 +100,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
     }
 
     override fun onConnect() {
+        startDriving()
         Toast.makeText(context, "Connected!", Toast.LENGTH_SHORT).show()
         Log.i(TAG, "Connected")
     }
@@ -117,15 +118,24 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
     }
 
     private fun startDriving() {
-        start.visibility = View.GONE
-        stop.visibility = View.VISIBLE
+        drivingLayout.visibility = View.VISIBLE
+        pausedLayout.visibility = View.GONE
+        searchingLayout.visibility = View.GONE
         sensorManager.registerListener(sensorListener, accel, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     private fun stopDriving() {
-        start.visibility = View.VISIBLE
-        stop.visibility = View.GONE
+        drivingLayout.visibility = View.GONE
+        pausedLayout.visibility = View.VISIBLE
+        searchingLayout.visibility = View.GONE
         sensorManager.unregisterListener(sensorListener)
+    }
+
+    private fun startSearching() {
+        bluetoothScanner.startScan(this)
+        drivingLayout.visibility = View.GONE
+        pausedLayout.visibility = View.GONE
+        searchingLayout.visibility = View.VISIBLE
     }
 
     companion object {

@@ -4,23 +4,75 @@
     android:layout_height="match_parent"
     tools:context="theo.dexter.ui.fragment.ControlFragment">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/fragment_control_drive"
-        android:id="@+id/start"
-        android:background="@color/colorStart"
-        android:layout_centerInParent="true"
-        android:textColor="#FFFFFF" />
+    <LinearLayout
+        android:id="@+id/searchingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:visibility="gone">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/fragment_control_park"
-        android:id="@+id/stop"
-        android:background="@color/colorStop"
-        android:layout_centerInParent="true"
-        android:textColor="#FFFFFF"
-        android:visibility="gone" />
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Headline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fragment_control_searching" />
 
+        <ProgressBar
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="48dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/drivingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Headline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fragment_control_driving" />
+
+        <Button
+            android:id="@+id/stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:background="@color/colorStop"
+            android:text="@string/fragment_control_pause"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/pausedLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Headline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fragment_control_paused" />
+
+        <Button
+            android:id="@+id/start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:background="@color/colorStart"
+            android:text="@string/fragment_control_drive"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
 </RelativeLayout>

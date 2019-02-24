@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name">Dexter</string>
-    <string name="action_settings">Settings</string>
-
-    <!-- Bluetooth Fragment -->
-    <string name="fragment_bluetooth_devices">Nearby Bluetooth Devices</string>
 
     <!-- Control Fragment -->
-    <string name="fragment_control_park">Park</string>
+    <string name="fragment_control_pause">Pause</string>
     <string name="fragment_control_drive">Drive</string>
+    <string name="fragment_control_searching">Searching for Dexter</string>
+    <string name="fragment_control_driving">Rotate to drive!</string>
+    <string name="fragment_control_paused">Driving paused</string>
+
 </resources>

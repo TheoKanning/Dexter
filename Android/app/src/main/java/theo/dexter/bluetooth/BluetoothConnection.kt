@@ -93,7 +93,7 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
         /** Will cancel an in-progress connection, and close the bluetoothSocket  */
         fun cancel() {
             try {
-                bluetoothSocket!!.close()
+                connectedThread?.cancel()
                 isConnected = false
                 bluetoothConnectionListener.onDisconnect()
             } catch (e: IOException) {
@@ -132,7 +132,6 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
             } catch (e: IOException) {
                 Log.e(TAG, "Error writing message", e)
             }
-
         }
 
         /* Call this from the main activity to shutdown the connection */
