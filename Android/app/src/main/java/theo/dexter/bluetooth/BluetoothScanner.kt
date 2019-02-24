@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
-import android.widget.Toast
 
 /**
  * Class to handle all bluetooth scanning
@@ -50,7 +49,6 @@ class BluetoothScanner(private val context: Context) {
         endScan = Runnable {
             btAdapter.cancelDiscovery()
             context.applicationContext.unregisterReceiver(receiver)
-            Toast.makeText(context, "Scan stopped", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -60,7 +58,6 @@ class BluetoothScanner(private val context: Context) {
         for (device in btAdapter.bondedDevices) {
             listener.onBluetoothDeviceDiscovered(device)
         }
-        Toast.makeText(context, "Scan started", Toast.LENGTH_SHORT).show()
 
         handler.postDelayed(endScan, SCAN_DURATION.toLong())
     }

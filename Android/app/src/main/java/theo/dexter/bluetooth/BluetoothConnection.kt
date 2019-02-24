@@ -69,7 +69,7 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
 
             try {
                 // Connect the device through the bluetoothSocket. This will block
-                // until it succeeds or throws an exception
+                // until it succeeds or throws an excepti on
                 Log.d(TAG, "Connecting ${bluetoothSocket?.isConnected}")
                 bluetoothSocket!!.connect() // todo this is somehow blocking the UI
                 bluetoothConnectionListener.onConnect()
@@ -87,6 +87,8 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
         fun cancel() {
             try {
                 bluetoothSocket?.close()
+                bluetoothSocket?.outputStream?.close()
+                bluetoothSocket?.inputStream?.close()
                 bluetoothConnectionListener.onDisconnect()
             } catch (closeException: IOException) {
                 Log.e(TAG, "Unable to close BluetoothSocket", closeException)
