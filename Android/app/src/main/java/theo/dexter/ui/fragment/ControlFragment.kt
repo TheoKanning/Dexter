@@ -16,7 +16,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Toast
 
 import theo.dexter.R
 import theo.dexter.bluetooth.BluetoothConnection
@@ -74,7 +73,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
         override fun onSensorChanged(event: SensorEvent) {
-            if (bluetoothConnection != null && !bluetoothConnection!!.isConnected) {
+            if (bluetoothConnection != null && !bluetoothConnection!!.isConnected()) {
                 Log.d(TAG, "BluetoothConnection.isConnected returned false")
                 return
             }
@@ -101,19 +100,19 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
 
     override fun onConnect() {
         startDriving()
-        Toast.makeText(context, "Connected!", Toast.LENGTH_SHORT).show()
         Log.i(TAG, "Connected")
     }
 
     override fun onDisconnect() {
-        Toast.makeText(context, "Disconnected...", Toast.LENGTH_SHORT).show()
         Log.i(TAG, "Disconnected")
     }
 
     override fun onBluetoothDeviceDiscovered(device: BluetoothDevice) {
         if (device.name == "Dexter") {
             bluetoothScanner.stopScan()
+            Log.d(TAG, "Dexter found, connecting...")
             bluetoothConnection = BluetoothConnection(device, this)
+            Log.d(TAG, "Connecting complete")
         }
     }
 

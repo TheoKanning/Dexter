@@ -6,8 +6,6 @@ import android.os.Handler
 import android.util.Log
 
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.UUID
 
 /**
@@ -23,27 +21,26 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
 
     private val connectThread: ConnectThread
 
-    private var connectedThread: ConnectedThread? = null
-
-    var isConnected = false
-        private set
-
     interface BluetoothConnectionListener {
         fun onConnect()
         fun onDisconnect()
     }
 
     init {
-        this.connectThread = ConnectThread(device)
+        connectThread = ConnectThread(device)
         bluetoothHandler.post(connectThread)
     }
 
     fun write(message: String) {
-        connectedThread?.write(message)
+        connectThread.write(message)
     }
 
     fun disconnect() {
         connectThread.cancel()
+    }
+
+    fun isConnected() : Boolean {
+        return connectThread.isConnected()
     }
 
     private inner class ConnectThread(bluetoothDevice: BluetoothDevice) : Thread() {
@@ -63,6 +60,8 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
                 Log.e(TAG, "Could not create socket", e)
             }
 
+            Log.d(TAG, "ConnectThread initialized")
+
             bluetoothSocket = tmp
         }
 
@@ -71,76 +70,36 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
             try {
                 // Connect the device through the bluetoothSocket. This will block
                 // until it succeeds or throws an exception
-                bluetoothSocket!!.connect()
+                Log.d(TAG, "Connecting ${bluetoothSocket?.isConnected}")
+                bluetoothSocket!!.connect() // todo this is somehow blocking the UI
                 bluetoothConnectionListener.onConnect()
+                Log.d(TAG, "Connected")
             } catch (connectException: IOException) {
                 // Unable to connect; close the bluetoothSocket and get out
                 Log.e(TAG, "Unable to connect to device", connectException)
-                try {
-                    bluetoothSocket!!.close()
-                } catch (closeException: IOException) {
-                }
+                cancel()
 
                 return
             }
-
-            isConnected = true
-
-            // Do work to manage the connection (in a separate thread)
-            connectedThread = ConnectedThread(bluetoothSocket)
         }
 
         /** Will cancel an in-progress connection, and close the bluetoothSocket  */
         fun cancel() {
             try {
-                connectedThread?.cancel()
-                isConnected = false
+                bluetoothSocket?.close()
                 bluetoothConnectionListener.onDisconnect()
-            } catch (e: IOException) {
+            } catch (closeException: IOException) {
+                Log.e(TAG, "Unable to close BluetoothSocket", closeException)
             }
 
         }
-    }
 
-    private inner class ConnectedThread(private val bluetoothSocket: BluetoothSocket) : Thread() {
-        private val inputStream: InputStream = bluetoothSocket.inputStream
-        private val outputStream: OutputStream = bluetoothSocket.outputStream
-        private val buffer: ByteArray = ByteArray(1024)
-
-        override fun run() {
-            var bytes: Int // bytes returned from read()
-
-            // Keep listening to the InputStream until an exception occurs
-            while (true) {
-                try {
-                    // Read from the InputStream
-                    bytes = inputStream.read(buffer)
-                    // Send the obtained bytes to the UI activity
-                    bluetoothHandler.obtainMessage(MESSAGE_RECEIVED, bytes, -1, buffer)
-                            .sendToTarget()
-                } catch (e: IOException) {
-                    break
-                }
-
-            }
-        }
-
-        /* Call this from the main activity to send data to the remote device */
         fun write(message: String) {
-            try {
-                outputStream.write(message.toByteArray())
-            } catch (e: IOException) {
-                Log.e(TAG, "Error writing message", e)
-            }
+            bluetoothSocket?.outputStream?.write(message.toByteArray())
         }
 
-        /* Call this from the main activity to shutdown the connection */
-        fun cancel() {
-            try {
-                bluetoothSocket.close()
-            } catch (e: IOException) {
-            }
-
+        fun isConnected() : Boolean {
+            return bluetoothSocket?.isConnected == true
         }
     }
 
@@ -149,7 +108,5 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
         private val TAG = BluetoothConnection::class.java.simpleName
 
         private val MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-
-        private val MESSAGE_RECEIVED = 1
     }
 }
