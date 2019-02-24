@@ -26,7 +26,7 @@ import kotlinx.android.synthetic.main.fragment_control.*
 /**
  * Fragment for steering Dexter
  */
-class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.OnBluetoothDeviceDiscoveredListener {
+class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListener, BluetoothScanner.DexterScanListener {
 
     private lateinit var bluetoothScanner: BluetoothScanner
 
@@ -107,13 +107,9 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
         Log.i(TAG, "Disconnected")
     }
 
-    override fun onBluetoothDeviceDiscovered(device: BluetoothDevice) {
-        if (device.name == "Dexter") {
-            bluetoothScanner.stopScan()
-            Log.d(TAG, "Dexter found, connecting...")
-            bluetoothConnection = BluetoothConnection(device, this)
-            Log.d(TAG, "Connecting complete")
-        }
+    override fun onDexterFound(device: BluetoothDevice) {
+        Log.d(TAG, "Dexter found, connecting...")
+        bluetoothConnection = BluetoothConnection(device, this)
     }
 
     private fun startDriving() {
@@ -131,7 +127,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
     }
 
     private fun startSearching() {
-        bluetoothScanner.startScan(this)
+        bluetoothScanner.findDexter(this)
         drivingLayout.visibility = View.GONE
         pausedLayout.visibility = View.GONE
         searchingLayout.visibility = View.VISIBLE
