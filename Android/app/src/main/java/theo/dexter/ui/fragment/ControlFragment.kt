@@ -73,7 +73,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
         override fun onSensorChanged(event: SensorEvent) {
-            if (bluetoothConnection != null && !bluetoothConnection!!.isConnected()) {
+            if (bluetoothConnection?.isConnected() != true) {
                 Log.d(TAG, "BluetoothConnection.isConnected returned false")
                 return
             }

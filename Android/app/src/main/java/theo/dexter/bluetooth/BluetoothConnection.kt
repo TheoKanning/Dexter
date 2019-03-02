@@ -6,6 +6,8 @@ import android.os.Handler
 import android.util.Log
 
 import java.io.IOException
+import java.io.InputStream
+import java.nio.charset.Charset
 import java.util.UUID
 
 /**
@@ -20,6 +22,10 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
     private val bluetoothHandler: Handler = Handler()
 
     private val connectThread: ConnectThread
+
+    private var connectedThread : ConnectedThread? = null
+
+    private var connected = false
 
     interface BluetoothConnectionListener {
         fun onConnect()
@@ -71,7 +77,7 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
                 // Connect the device through the bluetoothSocket. This will block
                 // until it succeeds or throws an exception
                 Log.d(TAG, "Connecting")
-                bluetoothSocket!!.connect() // todo this is somehow blocking the UI
+                bluetoothSocket!!.connect()
                 bluetoothConnectionListener.onConnect()
                 Log.d(TAG, "Connected")
             } catch (connectException: IOException) {
@@ -81,11 +87,15 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
 
                 return
             }
+            connected = true
+            connectedThread = ConnectedThread(bluetoothSocket)
+            connectedThread?.start()
         }
 
         /** Will cancel an in-progress connection, and close the bluetoothSocket  */
         fun cancel() {
             try {
+                connected = false
                 bluetoothSocket?.outputStream?.close()
                 bluetoothSocket?.inputStream?.close()
                 bluetoothSocket?.close()
@@ -98,11 +108,25 @@ class BluetoothConnection(device: BluetoothDevice, private val bluetoothConnecti
 
         fun write(message: String) {
             bluetoothSocket?.outputStream?.write(message.toByteArray())
+            bluetoothSocket?.outputStream?.flush()
         }
 
         fun isConnected() : Boolean {
             return bluetoothSocket?.isConnected == true
         }
+    }
+
+    private inner class ConnectedThread(bluetoothSocket: BluetoothSocket) : Thread() {
+        val inputStream : InputStream = bluetoothSocket.inputStream
+        val buffer = ByteArray(1024)
+
+        override fun run() {
+            while (connected) {
+                inputStream.read(buffer)
+                //Log.d(TAG, "Received Message ${String(buffer, Charset.defaultCharset())}")
+            }
+        }
+
     }
 
     companion object {
