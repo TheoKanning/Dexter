@@ -55,8 +55,8 @@ void loop() {
 
   if (lastSteerTime < millis() - BLUETOOTH_TIMEOUT) {
     USB.println("Timed out");
-    setSpeed = 0;
-    differential = 0;
+    setSpeed = smooth(0, setSpeed, 0.9);
+    differential = smooth(0, differential, 0.9);
   }
 
   // setSpeed = twiddle(speed, pitch);
@@ -64,7 +64,7 @@ void loop() {
   if (fallen(pitch)) {
     stepsPerSecond = 1;
   } else {
-    speed = 0.9 * speed + 0.1 * stepsPerSecond;
+    speed = smooth(stepsPerSecond, speed, 0.9);
     setAngle = speedPid(speed, setSpeed);
     stepsPerSecond = anglePid(pitch, setAngle);
   }
@@ -119,11 +119,11 @@ void checkForPidCommands() {
         startTwiddling();
         break;
       case 'L':
-        //setSpeed = TUNE_SERIAL.parseFloat() * 100;
+        setSpeed = smooth(TUNE_SERIAL.parseFloat() * 100, setSpeed, 0.9);
         lastSteerTime = millis();
         break;
       case 'A':
-        //differential = TUNE_SERIAL.parseFloat() * 30;
+        differential = smooth(TUNE_SERIAL.parseFloat() * 30, differential, 0.9);
         lastSteerTime = millis();
       default:
         changed = false;
@@ -143,4 +143,9 @@ void checkForPidCommands() {
       TUNE_SERIAL.println(stepsPerSecond);
     }
   }
+}
+
+// collaborative filter to smooth out data readings
+float smooth(float newValue, float oldValue, float alpha) {
+  return alpha * oldValue + (1 - alpha) * newValue;
 }

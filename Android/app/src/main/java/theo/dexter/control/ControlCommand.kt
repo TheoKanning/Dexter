@@ -5,7 +5,7 @@ class ControlCommand(val linearVelocity: Double, // linear velocity in m/s
 
     override fun toString(): String {
         return "L$linearVelocity\n\r" +
-                "R$angularVelocity\n\r"
+                "A$angularVelocity\n\r"
     }
 }
 

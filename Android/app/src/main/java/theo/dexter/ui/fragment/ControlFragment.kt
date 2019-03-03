@@ -116,7 +116,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
         drivingLayout.visibility = View.VISIBLE
         pausedLayout.visibility = View.GONE
         searchingLayout.visibility = View.GONE
-        sensorManager.registerListener(sensorListener, accel, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(sensorListener, accel, SensorManager.SENSOR_DELAY_UI)
     }
 
     private fun stopDriving() {
