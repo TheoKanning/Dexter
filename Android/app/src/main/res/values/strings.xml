@@ -3,9 +3,9 @@
 
     <!-- Control Fragment -->
     <string name="fragment_control_pause">Pause</string>
-    <string name="fragment_control_drive">Drive</string>
+    <string name="fragment_control_drive">Start</string>
     <string name="fragment_control_searching">Searching for Dexter</string>
-    <string name="fragment_control_driving">Rotate to drive!</string>
-    <string name="fragment_control_paused">Driving paused</string>
+    <string name="fragment_control_driving">Rotate to steer!</string>
+    <string name="fragment_control_paused">Press Start</string>
 
 </resources>

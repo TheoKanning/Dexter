@@ -99,7 +99,9 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
     }
 
     override fun onConnect() {
-        startDriving()
+        drivingLayout.visibility = View.GONE
+        pausedLayout.visibility = View.VISIBLE
+        searchingLayout.visibility = View.GONE
         Log.i(TAG, "Connected")
     }
 
@@ -116,7 +118,7 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
         drivingLayout.visibility = View.VISIBLE
         pausedLayout.visibility = View.GONE
         searchingLayout.visibility = View.GONE
-        sensorManager.registerListener(sensorListener, accel, SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(sensorListener, accel, 100000)
     }
 
     private fun stopDriving() {
