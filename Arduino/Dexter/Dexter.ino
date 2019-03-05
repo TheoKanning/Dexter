@@ -38,8 +38,9 @@ void setup() {
   delay(1000); // pause before starting IMU calibration
   digitalWrite(13, LOW); // turn off LED while calibrating
   calibrateImu();
-  enableSteppers();
   digitalWrite(13, HIGH);
+  delay(2000); // pause before enabling stepps so I have time to let go
+  enableSteppers();
 }
 
 void loop() {
@@ -119,11 +120,13 @@ void checkForPidCommands() {
         startTwiddling();
         break;
       case 'L':
-        setSpeed = smooth(TUNE_SERIAL.parseFloat() * 100, setSpeed, 0.9);
+        // 1 m/s = 800 steps/s
+        setSpeed = smooth(TUNE_SERIAL.parseFloat() * 800, setSpeed, 0.9);
         lastSteerTime = millis();
         break;
       case 'A':
-        differential = smooth(TUNE_SERIAL.parseFloat() * 30, differential, 0.9);
+        // 1 rad/s = 50 steps/s
+        differential = smooth(TUNE_SERIAL.parseFloat() * 50, differential, 0.9);
         lastSteerTime = millis();
       default:
         changed = false;

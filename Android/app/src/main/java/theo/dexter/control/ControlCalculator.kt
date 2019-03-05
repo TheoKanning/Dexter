@@ -5,8 +5,8 @@ class ControlCalculator {
     companion object {
         const val accelThreshold = 1.0 // minimum acceleration to give a response
         const val accelMax = 5.0 // truncate any acceleration beyond this
-        const val linearMax = 1.0 // maximum linear velocity (m/s)
-        const val angularMax = 3.14 // maximum angular velocity (rad/sec)
+        const val linearMax = 0.125 // maximum linear velocity (m/s)
+        const val angularMax = 1 // maximum angular velocity (rad/sec)
     }
 
     /**
@@ -44,7 +44,7 @@ class ControlCalculator {
             }
 
     /**
-     * Rounds to two decimal places
+     * Rounds to three decimal places
      */
-    private fun round(speed: Double) = Math.round(speed * 100.0) / 100.0
+    private fun round(speed: Double) = Math.round(speed * 1000.0) / 1000.0
 }
