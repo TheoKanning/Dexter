@@ -26,6 +26,7 @@ I also added some iron weight on top for added stability.
 I designed the 3D-printed frame using Fusion 360, and designed the custom circuit board in Eagle.
 
 [Frame STP File](https://theokanning.com/wp-content/uploads/2019/03/Dexter-v1.zip)
+
 [PCB Eagle Design Block](https://theokanning.com/wp-content/uploads/2019/03/dexter_design_block.zip)
 
 ## IMU ##
