@@ -25,6 +25,9 @@ I also added some iron weight on top for added stability.
 
 I designed the 3D-printed frame using Fusion 360, and designed the custom circuit board in Eagle.
 
+[Frame STP File](https://theokanning.com/wp-content/uploads/2019/03/Dexter-v1.zip)
+[PCB Eagle Design Block](https://theokanning.com/wp-content/uploads/2019/03/dexter_design_block.zip)
+
 ## IMU ##
 The MPU-6050 IMU includes a gyroscope and accelerometer, and I combined the measured angle from the accelerometer with the rate from the gyro using a basic collaborative filter. A more advanced Kalman filter would be more accurate, but IMU accuracy was not a limiting factor.
 
@@ -47,7 +50,7 @@ To tune Dexter, I added a basic [Twiddle](https://www.youtube.com/watch?v=2uQ2BS
 ## Android App ##
 The included Android app steers Dexter by reading the accelerometer. In order to tune the PID constants, I used a bluetooth terminal app ([Play Store Link](https://play.google.com/store/apps/details?id=com.giumig.apps.bluetoothserialmonitor&hl=en_US))
 
-## Sources ##
+## References ##
 [jjrobots B-robot EVO 2](https://github.com/jjrobots/B-ROBOT_EVO2/tree/master/Arduino/BROBOT_EVO2)
 
 [Brokking YABR](http://www.brokking.net/yabr_main.html)
