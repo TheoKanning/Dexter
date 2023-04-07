@@ -1,21 +1,24 @@
 package theo.dexter.ui.fragment
 
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.app.ActivityCompat
 
 import theo.dexter.R
 import theo.dexter.bluetooth.BluetoothConnection
@@ -41,9 +44,9 @@ class ControlFragment : Fragment(), BluetoothConnection.BluetoothConnectionListe
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_control, container, false)
 
-        bluetoothScanner = BluetoothScanner(context!!)
+        bluetoothScanner = BluetoothScanner(requireContext())
 
-        sensorManager = activity!!.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         return view

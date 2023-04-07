@@ -31,7 +31,7 @@ class BluetoothScanner(private val context: Context) {
             // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND == action) {
                 val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                if (device.name == DEXTER_NAME) {
+                if (device?.name == DEXTER_NAME) {
                     Log.d(TAG, "Scan found Dexter")
                     listener?.onDexterFound(device)
                     stopScan()
